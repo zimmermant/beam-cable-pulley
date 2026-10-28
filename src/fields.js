@@ -26,18 +26,19 @@ import { fmtFixed, withUnit } from './format.js';
 //             `zone` of `at` becomes exactly `at`, and a keyboard nudge from `at` lands on at +/- jump
 //             so the arrow keys can leave the zone. `at` defaults to 0 (a quantity symmetric about
 //             zero, which is the usual case); here it is 270 degrees, straight down.
-//   noSlider  OPTIONAL: this input has no slider on the page and is set some other way. Neither input
-//             uses it here -- both have a slider AND can be dragged -- but state, presets and the
-//             browser harness all still honour it.
+//   noSlider  this input has no slider on the page and is set some other way. BOTH inputs carry it:
+//             the force at D is dragged by its arrowhead, and the bar under the figure reads it back
+//             rather than offering a second control. They are still stored, still snapped, and can
+//             still be set by a link, so state, presets and the browser harness all still honour it.
 // ======================================================================================================
 //
-// BOTH INPUTS CAN BE SET TWO WAYS, and that is deliberate. Dragging the arrow at D is the fast way and
-// the one the figure invites; the sliders are the exact way, because nobody drags to 215 degrees on
-// purpose. They are not two sources of truth: a drag and a slider both go through fieldSnap into the
-// same store, so they cannot disagree, and whichever you move the other follows.
+// THE FIGURE IS THE CONTROL. Drag the arrowhead at D, or tab to it and use the arrow keys: the steps
+// are the fields' own and every value goes through fieldSnap, so a key can only land where a drag
+// could. The keyboard is the drag by another route, not a second way in, and without it the force
+// would need a mouse.
 export const FIELDS = [
   { key: 'f', id: 'f', label: 'Force at D', symbol: 'F', sub: 'D', subWord: 'D',
-    min: 0, max: 300, step: 25, unit: 'lb', unitWord: 'pounds', default: 200, decimals: 0 },
+    min: 0, max: 300, step: 25, unit: 'lb', unitWord: 'pounds', default: 200, decimals: 0, noSlider: true },
   // THE SNAP, and why it is at 270 rather than at zero. The figure leaves the hanging weight drawn in
   // outline under D, so straight down is a direction the student is being invited to come back to: it
   // is the textbook problem, and it is the only direction whose answer anyone has memorised. Ten
@@ -46,12 +47,12 @@ export const FIELDS = [
   // that 260, 265, 275 and 280 degrees cannot be set at all -- they are inside the zone, and a drag
   // or a link that asks for one gets 270.
   { key: 'dir', id: 'dir', label: 'Direction at D', symbol: 'θ',
-    min: 0, max: 360, step: 5, unit: '°', unitWord: 'degrees', default: 270, decimals: 0,
+    min: 0, max: 360, step: 5, unit: '°', unitWord: 'degrees', default: 270, decimals: 0, noSlider: true,
     snap: { at: 270, zone: 10, jump: 15 } }
 ];
 
-// The inputs that really have a slider on the page. Everything that builds or checks a slider reads
-// this, not FIELDS; everything about state, presets and snapping still reads FIELDS.
+// The inputs that really have a slider on the page -- none, here. Everything that builds or checks a
+// slider reads this, not FIELDS; everything about state, presets and snapping still reads FIELDS.
 export const SLIDER_FIELDS = FIELDS.filter(f => !f.noSlider);
 
 // An angle prints "270°", with nothing between the number and the unit. Every other unit is joined by U+00A0.
@@ -110,15 +111,4 @@ export function unitText(text, unit, joins = UNIT_JOIN) {
 // The value with its unit.
 export function fieldText(f, v, joins = UNIT_JOIN) {
   return unitText(fieldShow(f, v), f.unit, joins);
-}
-
-// A symbol as SEGMENTS, so every renderer can draw a real subscript and none has to parse a string:
-// [{ t: 'F' }, { t: 'D', sub: true }]. The only way a symbol reaches the screen.
-export function fieldSymbol(f) {
-  return f.sub ? [{ t: f.symbol }, { t: f.sub, sub: true }] : [{ t: f.symbol }];
-}
-
-// The same symbol as it should be SPOKEN ("F sub D"), for aria text. Digits are spelled out by subWord.
-export function fieldSymbolWord(f) {
-  return f.sub ? `${f.symbol} sub ${f.subWord}` : f.symbol;
 }

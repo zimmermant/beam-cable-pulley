@@ -1,4 +1,4 @@
-import { FIELDS, SLIDER_FIELDS } from './fields.js';
+import { FIELDS } from './fields.js';
 import { createState } from './state.js';
 import { createScene } from './scene.js';
 import { createControls } from './controls.js';
@@ -7,7 +7,7 @@ import { parsePresets, describePresets } from './presets.js';
 
 // The page: the four diagrams and the reading of the force at D. Nothing else.
 //
-// BOTH inputs are set by DRAGGING the arrow at D, not by sliders, so SLIDER_FIELDS is empty and the
+// There is nothing on the page to push. Both inputs are set by DRAGGING the arrowhead at D, so the
 // bar under the figure holds readings rather than controls. The keyboard still reaches the force:
 // tab to the handle, then the arrow keys swing it and change its strength, Home puts it back on the
 // hanging weight at full strength and End drops it. That is the drag by another route, not a second
@@ -19,15 +19,13 @@ function appStart() {
   const state = createState();
   const fig = document.getElementById('fig');
   const scene = createScene(fig);
-  const parts = { reset: null, sliders: {}, readouts: {}, snaps: {}, marks: {} };
-  // Readouts for every input, sliders only for those that have one.
+  const parts = { readouts: {}, snaps: {}, marks: {} };
   for (const f of FIELDS) {
     parts.readouts[f.key] = document.getElementById(`${f.id}-readout`);
     if (f.snap) parts.snaps[f.key] = document.getElementById(`${f.id}-snap`);
     if (f.mark) parts.marks[f.key] = document.getElementById(`${f.id}-mark`);
   }
-  for (const f of SLIDER_FIELDS) parts.sliders[f.key] = document.getElementById(`${f.id}-slider`);
-  const controls = createControls(document.getElementById('controls'), state, parts);
+  const controls = createControls(parts);
 
   // Presets from the link apply once, before the first render. Only the fields the link set.
   const presets = parsePresets(location.search);

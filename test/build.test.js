@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync, readdirSync, mkdtempSync, rmSync, cpSync, 
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { strip, scanForDuplicates, main, MODULES, PAGES, BUILD_MARKER } from '../build.js';
+import { strip, scanForDuplicates, main, MODULES, PAGES, BUILD_MARKER, unsafeToStrip } from '../build.js';
 
 // build.js only calls main() when it is the program node was invoked on, so importing it here does not build.
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -12,7 +12,8 @@ const OUT = PAGES[0].out;
 
 // ---- strip: the two rewrites, as a pure function ----------------------------------------------
 test('strip: relative imports (one line or wrapped) and export keywords are removed, declarations kept', () => {
-  const out = strip("import { a } from './a.js';\nimport { b,\n  c } from './b.js';\nexport function f() {}\n  export const nope = 1;\nexport { f };\nconst keep = 2;\n");
+  // with the comment strip OFF, so this test is about imports and exports and nothing else
+  const out = strip("import { a } from './a.js';\nimport { b,\n  c } from './b.js';\nexport function f() {}\n  export const nope = 1;\nexport { f };\nconst keep = 2;\n", false);
   assert.ok(!/\bimport\b/.test(out), out);
   assert.ok(!/\bexport\b/.test(out), out);
   assert.ok(!out.includes('c }'), 'the wrapped second line is dropped too');
@@ -185,14 +186,24 @@ test('main() refuses an external URL, script tag or stylesheet', async () => {
   });
 });
 
-test('main() notices an import or export line that survived strip (inside a template literal, which still parses)', async () => {
-  await inCopy(addTo('format.js', '\nexport const SURVIVOR = `first\nimport nothing\nexport nothing`;\n'), (run) => {
-    assert.throws(run, /an import statement survived[\s\S]*an export statement survived/);
+test('main() notices an import line that survived strip, in a bundle that still parses', async () => {
+  // A DYNAMIC import, wrapped onto its own line. strip() only drops an import that has a `from`, so
+  // this one survives, and unlike a static import it is an expression, so the bundle still parses
+  // and the text check is the only thing standing between it and a page that fetches at run time.
+  //
+  // This used to be a multi-line template literal holding the words `import` and `export`, which was
+  // the only other way to get such a line past the parser. The strip now refuses a module with one
+  // of those at all (it would rewrite the text inside it), so that fixture can no longer be built --
+  // which also leaves build.js's matching `^export` check with no parseable fixture of its own. It
+  // is kept as belt and braces; this is the half that can still be shown to fire.
+  await inCopy(addTo('format.js', "\nexport const LATER = () =>\nimport ('./format.js');\n"), (run) => {
+    assert.throws(run, /an import statement survived/);
   });
 });
 
 test('the budget is measured in bytes: 90,000 three-byte characters are 270,000 bytes though .length says 90,000', async () => {
-  await inCopy(addTo('styles.css', `\n/* ${'—'.repeat(90_000)} */\n`), (run) => {
+  // a RULE, not a comment: comments are stripped out of the built page, so one could never blow a budget
+  await inCopy(addTo('styles.css', `\n:root { --pad: ${'—'.repeat(90_000)}; }\n`), (run) => {
     assert.throws(run, /over the 250 KB budget/);
   });
   await inCopy(addTo('format.js', `\nexport const HUGE_TEXT = '${'x'.repeat(260_000)}';\n`), (run) => {
@@ -201,7 +212,7 @@ test('the budget is measured in bytes: 90,000 three-byte characters are 270,000 
 });
 
 test('main() splices CSS and JavaScript verbatim: $& and $$ in them are not replacement patterns', async () => {
-  const css = "/* dollars: $& $' $` $$ $1 */";
+  const css = ":root { --dollars: $& $' $` $$ $1; }";   // a rule, not a comment: a comment would be stripped
   await inCopy((dir) => {
     appendFileSync(join(dir, 'src', 'styles.css'), `\n${css}\n`);
     appendFileSync(join(dir, 'src', 'format.js'), `\nexport const DOLLARS = '$& $$ $1';\n`);
@@ -256,6 +267,44 @@ test('no page carries a module that nothing in it imports (except its own entry 
       assert.ok(needed.has(m), `${page.name}: ${m} is bundled but nothing in that page imports it`);
     }
   }
+});
+
+// ---- the comment strip: most of the built page's weight, and none of its behaviour -------------
+test('the built page carries no comments, while the source keeps every one of them', async () => {
+  // Built here rather than read from dist/: the mutation audit runs this suite in a scratch copy of
+  // src/ that has no dist/ at all, and a test that cannot run there turns the whole audit void.
+  const html = await inCopy(() => {}, (run, out) => { run(); return readFileSync(join(out, OUT), 'utf8'); });
+  const lines = html.split('\n');
+  const jsComments = lines.filter(l => /^\s*\/\//.test(l) && !/^\s*\/\/ =====/.test(l));
+  assert.deepEqual(jsComments.slice(0, 3), [], `${jsComments.length} comment line(s) survived into the page`);
+  assert.ok(!/\/\*[\s\S]*?\*\//.test(html.slice(html.indexOf('<style>'), html.indexOf('</style>'))),
+    'a CSS comment survived into the page');
+  // the source is the documentation, and it keeps all of it
+  const src = readFileSync(join(repoRoot, 'src', 'layout.js'), 'utf8');
+  assert.ok(src.split('\n').filter(l => /^\s*\/\//.test(l)).length > 100, 'src/layout.js lost its comments');
+});
+
+test('strip drops whole-line comments, blank lines and indentation, and never a trailing comment', () => {
+  const code = "// a comment\n  // indented too\n\nconst NS = 'http://www.w3.org/2000/svg';\n  const a = 1; // kept: a trailing // cannot be told from a URL\n";
+  const out = strip(code);
+  assert.ok(!out.includes('a comment') && !out.includes('indented too'));
+  assert.ok(out.includes("'http://www.w3.org/2000/svg'"), 'a URL in a string is not a comment');
+  assert.ok(out.includes('// kept:'), 'a trailing comment is left alone on purpose');
+  assert.ok(!/^\s*$/m.test(out), 'blank lines go too');
+  assert.ok(/^const a = 1;/m.test(out), 'and the indentation a reader needed but the page does not');
+  const kept = strip(code, false);
+  assert.ok(kept.includes('a comment') && /^  const a = 1;/m.test(kept), 'the strip can be turned off');
+});
+
+test('the build REFUSES to strip a module with a multi-line template literal', async () => {
+  // Inside one, a blank line, an indent and a line starting with // are all text that matters, and
+  // the strip would rewrite every one of them. There is no such literal in src/, and this is what
+  // keeps it that way.
+  assert.equal(unsafeToStrip('const a = 1; // fine\nconst b = `x ${y} z`;'), null);
+  assert.ok(unsafeToStrip('const s = `line\n  indented\n`;'), 'a literal over two lines is refused');
+  await inCopy(addTo('format.js', '\nexport const RISKY = `one\n  two\n`;\n'), (run) => {
+    assert.throws(run, /template literal that runs over more than one line/);
+  });
 });
 
 test('main() refuses an import that renames what it brings in', async () => {

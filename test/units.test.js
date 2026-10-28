@@ -5,7 +5,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stubElement, installSvgDocument } from './stub-dom.js';
 import { asSubscript } from '../src/format.js';
-import { createScene } from '../src/scene.js';
+import { createScene, handleValueText } from '../src/scene.js';
 import { createControls } from '../src/controls.js';
 import { createState } from '../src/state.js';
 import { parsePresets, describePresets } from '../src/presets.js';
@@ -42,8 +42,9 @@ const ALLOWED = new Set(NON_ASCII_NUMERIC_OK.keys());
 // (rounded down). Measured on the toy (minimum over the grid): the figure shows 4 numbers per state, the calculation 6
 // (7 when x = 0 adds its note), the controls 4 (a readout and an aria-valuetext for each of the 2 inputs).
 // Measured here: the figure shows about 18 numbers per state -- four force labels in each of three
-// panels, the three dimensions, the slope triangle's 2 and 1, the angle and the polygon's scale bar --
-// and the controls 4, a readout and an aria-valuetext for each of the two sliders.
+// panels, the three dimensions, the slope triangle's 2 ft and 1 ft, the angle and the polygon's
+// scale bar -- and the bar 4: one readout for each of the two inputs, and the two numbers the drag
+// handle speaks.
 const MEASURED_PER_STATE = { scene: 18, controls: 4 };
 const FLOOR_SHARE = 0.85;
 const floor = (perState) => Math.floor(FLOOR_SHARE * perState * STATES.length);
@@ -176,30 +177,30 @@ function templateStrings(html) {
 
 test('unit lint: the template (headings, scales, buttons, links, aria text)', () => {
   const strs = templateStrings(template);
-  assert.ok(strs.length >= 8, `only ${strs.length} template strings`);
+  assert.ok(strs.length >= 5, `only ${strs.length} template strings`);
   assert.ok(strs.some(s => s.startsWith('attr:')), 'no aria text found');
-  for (const f of SLIDER_FIELDS) {                // the scale labels of every slider were seen, with their numbers
-    // J(unit) is the join this field really uses: a no-break space, or nothing at all for an angle ("360°").
-    assert.ok(strs.some(s => s.includes(nb(fieldShow(f, f.min) + J(f.unit) + f.unit))), `${f.key}: its minimum label was not linted`);
-    assert.ok(strs.some(s => s.includes(nb(fieldShow(f, f.max) + J(f.unit) + f.unit))), `${f.key}: its maximum label was not linted`);
+  // The page has no slider scales any more, so what carries a number into the markup is each
+  // input's READING. J(unit) is the join that field really uses: a no-break space, or nothing at
+  // all for an angle ("270°").
+  for (const f of FIELDS) {
+    assert.ok(strs.some(s => s.includes(nb(fieldShow(f, f.default) + J(f.unit) + f.unit))),
+      `${f.key}: its reading was not linted`);
   }
   for (const s of strs) lint(s, 'template');
   verdict('template');
 });
 
 function rig() {
-  const parts = { reset: stubElement('button'), sliders: {}, readouts: {}, snaps: {}, marks: {} };
-  for (const f of SLIDER_FIELDS) {
-    parts.sliders[f.key] = stubElement('input');
+  const parts = { readouts: {}, snaps: {}, marks: {} };
+  for (const f of FIELDS) {
     parts.readouts[f.key] = stubElement('b');
     if (f.snap) parts.snaps[f.key] = stubElement('span');
     if (f.mark) parts.marks[f.key] = stubElement('span');
   }
-  const state = createState();
-  return { parts, state, controls: createControls(stubElement(), state, parts) };
+  return { parts, state: createState(), controls: createControls(parts) };
 }
 
-test('unit lint: each slider readout with the unit that follows it on the page, and its aria-valuetext', () => {
+test('unit lint: each readout with the unit that follows it on the page, and what the handle says aloud', () => {
   // The readout node holds only the number; the page prints the unit right after it. Compose the sentence as the
   // template has it (the <b id="x-readout"> element's text replaced by what controls.js wrote).
   const sentence = (id) => {
@@ -212,10 +213,13 @@ test('unit lint: each slider readout with the unit that follows it on the page, 
   for (const s of STATES) {
     state.set(s);
     controls.render(state.getState());
-    for (const f of SLIDER_FIELDS) {
+    for (const f of FIELDS) {
       lint(parts.readouts[f.key].textContent + sentence(`${f.id}-readout`), `controls ${f.key} readout ${s[f.key]}`);
-      lint(parts.sliders[f.key].attrs['aria-valuetext'], `controls ${f.key} aria-valuetext ${s[f.key]}`);
     }
+    // The drag handle is the page's only control, and what a screen reader is told it is set to is
+    // the one place units are SPOKEN. With the sliders gone this is the only aria text with numbers
+    // in it, so it is linted here rather than left to no one.
+    lint(handleValueText(s), `controls handle aria-valuetext ${JSON.stringify(s)}`);
   }
   enough('controls', seen.numbers - before, MEASURED_PER_STATE.controls);
   verdict('controls');

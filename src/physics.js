@@ -113,10 +113,3 @@ export function derive(s) {
     slack: t < 0
   };
 }
-
-// The direction of a vector, in degrees CCW from +x in [0, 360), or null for a vector of no length.
-export function headingOf(v) {
-  if (!(Math.hypot(v.x, v.y) > 0)) return null;
-  const deg = Math.atan2(v.y, v.x) * 180 / Math.PI;
-  return deg < 0 ? deg + 360 : deg;
-}

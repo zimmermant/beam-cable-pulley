@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stubElement } from './stub-dom.js';
-import { FIELDS, SLIDER_FIELDS, fieldShow, fieldText, fieldSnap, snapAt } from '../src/fields.js';
+import { FIELDS, fieldShow, fieldText, fieldSnap, snapAt } from '../src/fields.js';
 import { PRESET_SHOWN_MAX } from '../src/presets.js';
 import { VB } from '../src/layout.js';
 import { nb } from './nb.js';
@@ -12,8 +12,8 @@ import { J } from './join.js';
 
 const template = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'index.template.html'), 'utf8');
 const IDS = ['fig', 'stage', 'controls', 'from-link'];
-for (const f of SLIDER_FIELDS) {
-  IDS.push(`${f.id}-slider`, `${f.id}-readout`);
+for (const f of FIELDS) {
+  IDS.push(`${f.id}-readout`);
   if (f.snap) IDS.push(`${f.id}-snap`);
   if (f.mark) IDS.push(`${f.id}-mark`);
 }
@@ -40,17 +40,13 @@ async function boot(search) {
 }
 const query = (pairs) => '?' + pairs.map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
 
-test('page load with no parameters: titled like the page, drawn, defaults in the slider, note hidden', async () => {
+test('page load with no parameters: titled like the page, drawn, the defaults read back, note hidden', async () => {
   const { els, texts, readout } = await boot('');
   assert.equal(document.title, template.match(/<title>([^<]*)<\/title>/)[1], 'the title and the page must agree');
   assert.ok(texts().length >= 15, `only ${texts().length} labels drawn`);
   assert.ok(texts().some(t => t === 'The situation'));
   assert.ok(texts().some(t => t === 'The forces tip to tail'), 'all four panels are drawn');
-  for (const f of SLIDER_FIELDS) {
-    assert.equal(readout(f), fieldShow(f, f.default), f.key);
-    assert.equal(els[`${f.id}-slider`].value, String(f.default), f.key);
-    assert.equal(els[`${f.id}-slider`].attrs['aria-valuetext'], nb(`${fieldShow(f, f.default)}~${f.unitWord}`));
-  }
+  for (const f of FIELDS) assert.equal(readout(f), fieldShow(f, f.default), f.key);
   assert.equal(els['from-link'].hidden, true);
   assert.equal(els['from-link'].textContent, '');
   assert.ok(els.fig.children.some(n => (n.attrs.class || '').includes('load-handle')), 'the drag handle is drawn');
@@ -75,7 +71,7 @@ test('the presets are applied BEFORE the first draw, so the defaults never flash
 });
 
 test('the snap label lights up exactly when the snapped input sits on its value', async () => {
-  for (const f of SLIDER_FIELDS.filter(g => g.snap)) {
+  for (const f of FIELDS.filter(g => g.snap)) {
     const at = snapAt(f);
     const on = await boot(query([[f.key, at]]));
     assert.ok((on.els[`${f.id}-snap`].attrs.class || '').includes('on'), `${f.key}: not lit at ${at}`);
@@ -84,14 +80,15 @@ test('the snap label lights up exactly when the snapped input sits on its value'
   }
 });
 
-test('moving the slider redraws the figure and the readout', async () => {
+test('the keyboard on the drag handle redraws the figure and the readout', async () => {
   const { els, texts, readout } = await boot('');
-  const f = SLIDER_FIELDS[0];
+  const f = FIELDS[0];
   const before = texts().join('|');
-  els[`${f.id}-slider`].value = String(f.max);
-  els[`${f.id}-slider`].fire('input', {});
-  assert.equal(readout(f), fieldShow(f, f.max));
-  assert.notEqual(texts().join('|'), before, 'the figure did not follow the slider');
+  const handle = els.fig.children.find(n => (n.attrs.class || '').includes('load-handle'));
+  handle.closest = (sel) => (sel === '.load-handle' ? handle : null);
+  els.stage.fire('keydown', { key: 'ArrowUp', target: handle, preventDefault() {} });
+  assert.equal(readout(f), fieldShow(f, f.default + f.step));
+  assert.notEqual(texts().join('|'), before, 'the figure did not follow the keyboard');
 });
 
 test('dragging the arrow at D redraws the whole figure', async () => {
@@ -125,8 +122,8 @@ test('an unknown parameter is ignored silently, and the note stays hidden', asyn
   assert.equal(els['from-link'].textContent, '');
 });
 
-test('a value off the slider grid is snapped, and the note says it was', async () => {
-  const f = SLIDER_FIELDS[0];
+test('a value off the input grid is snapped, and the note says it was', async () => {
+  const f = FIELDS[0];
   const off = f.min + 0.4 * f.step + f.step;
   const { els, readout } = await boot(query([[f.key, off]]));
   assert.equal(readout(f), fieldShow(f, fieldSnap(f, off)));

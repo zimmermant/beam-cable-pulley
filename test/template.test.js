@@ -8,9 +8,9 @@ import { parsePresets } from '../src/presets.js';
 import { PAGES } from '../build.js';
 import { VB } from '../src/layout.js';
 
-// The page is the four diagrams and two sliders. These tests pin that down as text: that each slider
-// really is there with the table's range, that the snapped direction is marked on its scale at the
-// right place, and that nothing else crept back in.
+// The page is the four diagrams and a reading bar -- no control at all, because the figure is the
+// control. These tests pin that down as text: that every input is read back, that the snap is marked
+// in words beside its reading, and that no slider has crept back in.
 const src = join(dirname(fileURLToPath(import.meta.url)), '..', 'src');
 const html = readFileSync(join(src, 'index.template.html'), 'utf8');
 const css = readFileSync(join(src, 'styles.css'), 'utf8');
@@ -29,7 +29,9 @@ test('one page, and it has both inline markers exactly once', () => {
 test('every id app.js looks up is in the page', () => {
   const app = readFileSync(join(src, 'app.js'), 'utf8');
   const ids = [...app.matchAll(/getElementById\('([\w-]+)'\)/g)].map(m => m[1]);
-  assert.ok(ids.length >= 4, `only ${ids.length} ids found in app.js`);
+  // three, not four: with the sliders gone app.js no longer looks up #controls, which is now only a
+  // box for the CSS and a handle for the browser harness
+  assert.ok(ids.length >= 3, `only ${ids.length} ids found in app.js`);
   for (const id of ids) assert.ok(html.includes(`id="${id}"`), `#${id} is missing from the page`);
 });
 
@@ -41,19 +43,21 @@ test('the figure is the one the layout draws, and is left to letterbox itself', 
   assert.ok(/role="img"/.test(html) && /aria-label="[^"]{120,}"/.test(html), 'the figure needs a real description');
 });
 
-test('the input that HAS a slider has all of its parts, with the table\'s range', () => {
-  for (const f of SLIDER_FIELDS) {
-    const slider = html.match(new RegExp(`<input type="range" id="${f.id}-slider" min="(-?[\\d.]+)" max="(-?[\\d.]+)" step="([\\d.]+)" value="(-?[\\d.]+)"`));
-    assert.ok(slider, `${f.key}: no range input with min, max, step and value`);
-    assert.deepEqual(slider.slice(1).map(Number), [f.min, f.max, f.step, f.default], `${f.key}: the page's range differs from FIELDS`);
-    const want = `<label for="${f.id}-slider"><b>${f.label}</b></label> ${symHtml(f)} = <b id="${f.id}-readout" class="readout">${fieldShow(f, f.default)}</b>${sepHtml(f.unit)}${f.unit}`;
-    assert.ok(html.includes(want), `${f.key}: the heading line must read ${want}`);
-    for (const end of [f.min, f.max]) {
-      // a '+' only where the scale runs both ways from zero; this page's two do not
-      const shown = (end > 0 && f.min < 0 ? '+' : '') + fieldShow(f, end);
-      assert.ok(html.includes(`<span>${shown}${sepHtml(f.unit)}${f.unit}`), `${f.key}: no scale label "${shown}"`);
-    }
+test('every input is read back in the bar, with its symbol and its unit', () => {
+  for (const f of FIELDS) {
+    const want = `${symHtml(f)} = <b id="${f.id}-readout" class="readout">${fieldShow(f, f.default)}</b>${sepHtml(f.unit)}${f.unit}`;
+    assert.ok(html.includes(want), `${f.key}: the bar must read "${want}"`);
   }
+});
+
+test('no slider has crept back in: the page has no control to push at all', () => {
+  assert.equal(SLIDER_FIELDS.length, 0, 'a slider would need markup, binding, a keyboard flag and its own tests');
+  assert.equal(count(html, /<input\b/g), 0, 'no input element of any kind');
+  assert.ok(!/type="range"/.test(html));
+  // the RULES, not the word: a comment may still explain why there is no slider here
+  assert.ok(!/input\[type=range\]/.test(css), 'no slider styling left behind to ship with the page');
+  assert.ok(!/::-webkit-slider|::-moz-range/.test(css), 'nor the per-engine thumb and track rules');
+  assert.ok(!/^\.(zs|zl|zt)[\s{.]/m.test(css), 'nor the scale, track and tick classes a slider needed');
 });
 
 test('an input with no slider would really have none, and the page says the arrow can be dragged too', () => {
@@ -61,31 +65,25 @@ test('an input with no slider would really have none, and the page says the arro
     assert.ok(!html.includes(`${f.id}-slider`), `${f.key} should have no slider`);
   }
   assert.equal(count(html, /<input\b/g), SLIDER_FIELDS.length, 'exactly one input per slider field, and no others');
-  // Both inputs can also be set by dragging the arrow at D. A student who never reads a hint will
-  // find that out by grabbing it; one who reads the bar should not have to guess.
-  assert.ok(/drag the arrowhead/.test(html), 'the bar has to say the arrow is draggable');
+  // Where the page says the arrow can be dragged is the FIGURE, beside the arrow itself (the "drag
+  // the arrowhead" caption under "The situation", and the svg's own description for a screen
+  // reader) -- not a hint in the bar, which only repeated it and was long enough to wrap the bar
+  // onto a second line and push the figure under the 12 px floor.
+  assert.match(html.match(/aria-label="([^"]*)"/)[1], /dragged/, 'the figure has to say the arrow is draggable');
+  assert.ok(!/class="hint"/.test(html), 'and not say it twice, in a bar that has no room for it');
   for (const f of FIELDS) assert.ok(html.includes(`id="${f.id}-readout"`), `${f.key}: every input is read back on the page`);
 });
 
-test('the snapped direction is marked on its scale, at the place the field says, for that field and no other', () => {
-  const snapFields = SLIDER_FIELDS.filter(f => f.snap);
-  assert.ok(snapFields.length >= 1, 'the direction sticks at straight down and should be marked there');
-  assert.equal(count(html, /<i class="zt"><\/i>/g), snapFields.length, 'one tick per snap field');
-  assert.equal(count(html, /class="snap-label"/g), snapFields.length);
+test('the snapped direction is marked in words beside its reading, for that field and no other', () => {
+  const snapFields = FIELDS.filter(f => f.snap);
+  assert.ok(snapFields.length >= 1, 'the direction sticks at straight down and should be marked');
+  assert.equal(count(html, /class="snap-label"/g), snapFields.length, 'one chip per snapping input');
   for (const f of snapFields) assert.ok(html.includes(`id="${f.id}-snap" class="snap-label"`), `${f.key}`);
-  assert.ok(css.includes('.snap-label.on'), 'the label lights up when the slider sits on it');
-  // THE DRIFT THAT WOULD OTHERWISE GO UNSEEN: the tick's position is a percentage in the stylesheet,
-  // and the value it marks is a number in FIELDS. Change the range and the tick would quietly point
-  // at the wrong place, which is worse than no tick at all.
-  const f = snapFields[0];
-  const want = 100 * (snapAt(f) - f.min) / (f.max - f.min);
-  for (const rule of ['.zt', '.zl .snap-label']) {
-    const m = css.match(new RegExp(`\\${rule.split(' ').pop()}\\s*\\{[^}]*left:\\s*([\\d.]+)%`));
-    assert.ok(m, `no left percentage on ${rule}`);
-    assert.ok(Math.abs(Number(m[1]) - want) < 0.01, `${rule} sits at ${m[1]}%, but ${snapAt(f)} is ${want}% along the scale`);
-  }
-  assert.ok(html.includes(`${fieldShow(f, snapAt(f))}${sepHtml(f.unit)}${f.unit} straight down`),
-    'and the label says in words what that value means');
+  assert.ok(css.includes('.snap-label.on'), 'the chip lights up when the input sits on its snap value');
+  // The chip says what the value MEANS, not just that there is one: a student who has dragged the
+  // force a little off straight down has to be able to tell that is what the chip went out for.
+  assert.ok(html.includes('>straight down<'), 'the chip has to name the direction it marks');
+  assert.ok(/270/.test(String(snapAt(snapFields[0]))), 'and that direction is the one the field snaps to');
 });
 
 test('nothing from the fuller page crept back in: no reading panel, no reset, no second page', () => {
@@ -101,14 +99,6 @@ test('the page is exactly the window tall and never scrolls', () => {
   assert.ok(/#fig\s*\{[^}]*position:\s*absolute/.test(css));
 });
 
-test('the slider shows every state it can be in, in both engines', () => {
-  for (const sel of ['::-webkit-slider-thumb', '::-moz-range-thumb']) {
-    assert.ok(css.includes(`input[type=range]:hover${sel}`), `the thumb needs a hover style for ${sel}`);
-    assert.ok(css.includes(`input[type=range]:active${sel}`), `and an active one for ${sel}`);
-    assert.ok(css.includes(`input[type=range]:focus-visible${sel}`), `and a focus one for ${sel}`);
-  }
-});
-
 test('a subscript on the page is pinned at the 12 px floor, not left to the browser', () => {
   assert.ok(/#controls sub\s*\{[^}]*font-size:\s*12px/.test(css),
     'the browser default is 83% of the parent, which lands within a whisker of the floor');
@@ -119,7 +109,8 @@ test('the page works in the units the figure is dimensioned in: pounds and degre
   assert.deepEqual(FIELDS.map(f => f.unit), ['lb', '°'], 'a force in pounds, an angle in degrees');
   assert.equal(FIELDS[0].unitWord, 'pounds');
   assert.equal(FIELDS[1].unitWord, 'degrees');
-  assert.ok(/>\s*0&nbsp;lb</.test(html) && /300&nbsp;lb</.test(html), 'the force scale is labelled in pounds');
+  assert.ok(/<\/b>&nbsp;lb/.test(html), 'the force is read back in pounds');
+  assert.ok(/<\/b>°/.test(html), 'and the direction in degrees, with no space before the sign');
   assert.ok(!/\bN\b|newton/i.test(html), 'nothing on the page is in newtons: the figure is in feet and pounds');
 });
 

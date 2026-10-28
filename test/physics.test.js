@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { derive, tension, loadComponents, headingOf, cosDeg, sinDeg,
+import { derive, tension, loadComponents, cosDeg, sinDeg,
          AB, BC, CD, X_B, X_C, X_D, SPAN, H_E, PULLEY_R, SQ5, U_BE, U_CE,
          MOMENT_PER_T, FORCE_DP, ANGLE_DP, FORCE_SUB, COMPONENT_SUB } from '../src/physics.js';
 import { STATES } from './grid.js';
@@ -145,14 +145,20 @@ test('the whole thing is linear in the force at D', () => {
   near(two.A.y, 2 * one.A.y);
 });
 
-test('headingOf reads a vector back as a bearing, and has none for a vector of no length', () => {
-  assert.equal(headingOf({ x: 1, y: 0 }), 0);
-  assert.equal(headingOf({ x: 0, y: 1 }), 90);
-  assert.equal(headingOf({ x: 0, y: -1 }), 270);
-  near(headingOf({ x: -1, y: -1 }), 225);
-  assert.equal(headingOf({ x: 0, y: 0 }), null);
-  // and it agrees with the direction the state was set to
-  for (const dir of [0, 35, 90, 215, 270, 355]) near(headingOf(loadComponents({ f: 50, dir })), dir, 1e-9);
+// The app has no need to read a bearing back out of a vector -- nothing calls for it -- so there is
+// no helper to test. The property still matters, though: the components really do point the way the
+// direction said, and that is checked here with the arithmetic written out.
+test('the components of the force at D really point the way its direction says', () => {
+  const bearing = (v) => { const d = Math.atan2(v.y, v.x) * 180 / Math.PI; return d < 0 ? d + 360 : d; };
+  // compared a full turn apart, because 360 degrees and 0 degrees are the same direction and the
+  // slider's range can hold either -- which is what this caught the first time it was run
+  const apart = (a, b) => ((a - b + 540) % 360) - 180;
+  for (const dir of [0, 35, 90, 215, 270, 355]) near(apart(bearing(loadComponents({ f: 50, dir })), dir), 0, 1e-9, `dir ${dir}`);
+  for (const s of STATES) {
+    if (s.f === 0) continue;
+    near(apart(bearing(loadComponents(s)), s.dir), 0, 1e-9, JSON.stringify(s));
+    near(Math.hypot(loadComponents(s).x, loadComponents(s).y), s.f, 1e-9, `${JSON.stringify(s)}: and its length is f`);
+  }
 });
 
 test('the grid stays inside the drawing budgets the figure is built for', () => {

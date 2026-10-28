@@ -64,15 +64,43 @@ function hasTopLevelComma(line) {
   return false;
 }
 
-export function strip(code) {
+// WHAT THE STRIP DOES AND WHY IT IS SAFE. It works line by line: a line whose first non-space
+// characters are `//` is a comment, a blank line is nothing, and the spaces that indent a line of
+// code are only there for a reader. Each of those is true of JavaScript EXCEPT inside a template
+// literal, where every one of them is text that matters. A multi-line template literal is therefore
+// the one thing this cannot survive, so the build REFUSES a module containing one rather than
+// quietly mangling it. The source keeps all its comments and its indentation; only the built page
+// goes without, and between them they are half its weight.
+const TEMPLATE_LITERAL = /`(?:[^\\`]|\\.)*`/gs;
+
+export function unsafeToStrip(code) {
+  for (const m of code.match(TEMPLATE_LITERAL) || []) {
+    if (m.includes('\n')) return m.split('\n')[0].trim() + ' …';
+  }
+  return null;
+}
+
+export function strip(code, dropComments = true) {
   // Drop relative imports as whole statements rather than line-by-line: an import whose named list wraps onto a
   // second line has no "from" on its opening line, so a per-line filter never sees it. [^;]* cannot cross the
   // statement's own semicolon, so this cannot run away into later code.
   code = code.replace(/^\s*import\s[^;]*from\s+['"]\.\/[^'"]+['"]\s*;?[ \t]*$/gm, '');
-  return code.split('\n')
+  let lines = code.split('\n')
     .filter(l => !/^\s*export\s*\{[^}]*\}\s*;?\s*$/.test(l))
-    .map(l => l.replace(/^(\s*)export\s+(function|const|let|var|class)\s/, '$1$2 '))
-    .join('\n');
+    .map(l => l.replace(/^(\s*)export\s+(function|const|let|var|class)\s/, '$1$2 '));
+  // Only WHOLE-line comments, never trailing ones: a trailing `//` cannot be told from the `//` of a
+  // URL inside a string (svg.js holds "http://www.w3.org/2000/svg") without parsing the line.
+  if (dropComments) {
+    lines = lines.filter(l => !/^\s*\/\//.test(l) && l.trim() !== '').map(l => l.replace(/^[ \t]+/, ''));
+  }
+  return lines.join('\n');
+}
+
+// CSS comments, by the same rule and with the same refusal: `/*` inside a quoted value would be
+// text, so a stylesheet with one is not stripped.
+export function stripCss(css) {
+  if (/(['"])[^'"\n]*\/\*[^'"\n]*\1/.test(css)) return css;
+  return css.replace(/\/\*[\s\S]*?\*\//g, '').split('\n').filter(l => l.trim() !== '').join('\n');
 }
 
 // Scans one module's source line by line, registering each column-0 declared name into `seen` (shared across the
@@ -117,6 +145,13 @@ function buildPage(page) {
         `Use "${alias[1]}" directly, or rename it at its definition.`);
     }
     scanForDuplicates(code, m, seen);
+    const risky = unsafeToStrip(code);
+    if (risky) {
+      throw new Error(`${m} has a template literal that runs over more than one line: ${risky}\n` +
+        `The strip works line by line -- dropping comments, blank lines and indentation -- so it ` +
+        `would rewrite the text inside that literal. Put the literal on one line, build it from ` +
+        `joined pieces, or build this module with strip(code, false).`);
+    }
     parts.push(`// ===== ${m} =====\n` + strip(code));
   }
 
@@ -131,7 +166,7 @@ function buildPage(page) {
       `Build failed: the ${page.name} page's assembled bundle does not parse as JavaScript.\n  - ${err.message}`);
   }
 
-  const css = page.css.map(f => readFileSync(join(SRC, f), 'utf8')).join('\n');
+  const css = stripCss(page.css.map(f => readFileSync(join(SRC, f), 'utf8')).join('\n'));
 
   let html = readFileSync(join(SRC, page.template), 'utf8');
   if (!html.includes('<!--INLINE_CSS-->') || !html.includes('<!--INLINE_JS-->')) {
@@ -144,6 +179,9 @@ function buildPage(page) {
 
   // Build-time assertions: the artifact must be genuinely self-contained.
   const problems = [];
+  // A dynamic `import(...)` on its own line is the one of these that can still reach here in a
+  // bundle that parses; the `export` half is belt and braces, since the strip now refuses the
+  // multi-line template literal that was the only way to smuggle one past the parser.
   if (/^\s*import\s/m.test(js)) problems.push('an import statement survived');
   if (/^\s*export\s/m.test(js)) problems.push('an export statement survived');
   // svg.js declares NS = 'http://www.w3.org/2000/svg', the XML namespace string createElementNS needs: a fixed

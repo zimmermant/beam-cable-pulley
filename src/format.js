@@ -28,11 +28,6 @@ export function withUnit(text, unit, join = NBSP) {
   return `${text}${join}${unit}`;
 }
 
-// The inverse of fmt / fmtFixed: printed text (with a true minus sign) back to a number.
-export function unfmt(text) {
-  return Number(String(text).replace(MINUS, '-'));
-}
-
 // A label as SEGMENTS -- [{ t: 'F' }, { t: 'B', sub: true }] -- read back as plain text. Segments are how
 // every symbol with a subscript travels: each renderer draws the `sub` ones as a real subscript (a <sub>
 // element, a lowered tspan), and this is the only way to get the whole label back as a string, for the

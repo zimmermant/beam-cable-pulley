@@ -61,12 +61,17 @@ drawn arrow, and no ASCII underscore ever reaches the screen.
 
 ## Using it
 
+**The figure is the control.** There is nothing else on the page to push.
+
 - **Drag the arrowhead** at D, or tab to it and use the arrow keys (left/right swing, up/down pull
   harder; Home puts it back on the weight at full strength, End drops it).
-- **The two sliders** set the same two numbers exactly, which no drag can do: nobody drags to 215°
-  on purpose. The direction slider sticks at **270°**, straight down, within ten degrees either side;
-  one arrow-key nudge from there lands on 255° or 285°, clear of the zone.
-- A link can preset both: `?f=200&dir=90` (that one makes the cable go slack).
+- The direction sticks at **270°**, straight down, within ten degrees either side, and the outlined
+  weight fills in while it is there. One arrow-key nudge from the snap lands on 255° or 285°, clear
+  of the zone, so the keyboard can always leave it.
+- A link sets either exactly, which no drag can do: `?f=150&dir=215`, or `?f=200&dir=90` for the
+  state where the cable would have to push and goes slack.
+- The bar under the figure is a **reading**, not a control: it shows both numbers and lights a chip
+  while the force is on the weight.
 
 ## Working on it
 
@@ -113,7 +118,15 @@ all four of its sides' midpoints together. The comments give the measured number
 **`SUB` is 17, not 16, and that is about the control bar.** The figure takes whatever height the bar
 leaves it, so a link that adds a two-line "Adjusted:" note shrinks the figure — and at 16 units the
 subscripts then rendered at 11.8 px, under the floor. Anything that makes the bar taller has to be
-checked against `H.queries()` at **1280 × 720**, which is the tighter of the two budgets.
+checked against `H.queries()` at **1280 × 720**, which is the tighter of the two budgets. A hint in
+the bar that wrapped onto a second line is exactly what that caught once already.
+
+**The built page carries no comments or indentation, and the source keeps all of it.** `strip()` in
+`build.js` drops whole-line comments, blank lines and leading whitespace — about half the page's
+weight, and none of its behaviour. It works line by line, which is true of JavaScript everywhere
+except inside a multi-line template literal, so the build **refuses** a module containing one rather
+than mangling it. Trailing comments are left alone on purpose: a trailing `//` cannot be told from
+the `//` of a URL in a string without parsing the line.
 
 **The build refuses a renaming import** (`import { a as b }`). Node honours the alias; the inliner
 strips the import line and every module shares one scope, so `b` would never exist and the page would

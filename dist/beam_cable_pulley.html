@@ -18,34 +18,16 @@ body {
 }
 h1 { margin: 0; font-size: 20px; line-height: 1.2; font-weight: 600; }
 h2 { margin: 0 0 4px; font-size: 15px; line-height: 1.3; font-weight: 600; }
-
-/* ---- page layout ---------------------------------------------------------
-   The four diagrams and one slider, nothing else. The figure is sized to FIT, not to fill: the svg
-   keeps its viewBox's aspect ratio (preserveAspectRatio defaults to "meet"), so it is as large as
-   the window allows and centred in whatever is left over. The page therefore never scrolls at any
-   size, and src/interact.js already reads that letterboxing when it turns a pointer position into
-   viewBox units, so dragging lands in the right place however the window is shaped. */
 body { margin: 0; padding: 0; height: 100vh; overflow: hidden; }
 .stage { box-sizing: border-box; height: 100%; padding: 4px 8px; display: flex; flex-direction: column; }
-/* An absolutely positioned svg inside a relative box: a flex child sizing an svg by its own aspect
-   ratio is unreliable across browsers, and this is not. */
 .fig-fill { flex: 1 1 auto; position: relative; min-height: 0; min-width: 0; }
 #fig { position: absolute; inset: 0; width: 100%; height: 100%; }
-/* The readings, in a slim bar under the figure. */
 .bar { flex: 0 0 auto; max-width: 740px; width: 100%; margin: 3px auto 0; padding: 1px 12px 2px;
        border: 1px solid #d5dbe3; border-radius: 8px; background: #f9fafb; }
-.hint { color: #718096; font-weight: 400; }
-/* A subscript is browser-default 83% of its parent, which at 15 px is 12.4 px -- close enough to the
-   12 px floor to be worth pinning rather than leaving to the browser. */
 #controls sub { font-size: 12px; line-height: 0; }
-
-/* ---- colours, the same values as COLORS in svg.js ---- */
 .c-load { color: #c53030; }
 .c-cable { color: #b7791f; }
 .c-pin { color: #2b6cb0; }
-
-/* ---- the figure's one interactive element: the handle at the tip of the force at D ----------
-   Every state it can be in is visible: at rest, hovered, grabbed and keyboard-focused. */
 #fig { touch-action: none; }
 #fig .load-handle { cursor: grab; transition: fill .08s, stroke-width .08s; }
 #fig .load-handle:hover { fill: #fed7d7; stroke-width: 4.6; }
@@ -53,55 +35,14 @@ body { margin: 0; padding: 0; height: 100vh; overflow: hidden; }
 #fig .load-handle:focus-visible { stroke: #2b6cb0; stroke-width: 5.5; fill: #ebf8ff; }
 #fig.dragging .load-handle { cursor: grabbing; fill: #c53030; stroke-width: 5; }
 #fig.dragging { cursor: grabbing; }
-
-
-/* ---- the two sliders ----------------------------------------------------
-   Both inputs can also be set by dragging the arrow at D; these are the exact way in.
-   EVERY PIXEL HERE COMES OFF THE FIGURE, and the figure is what has to stay legible. The page fits
-   the window with no scroll, so the svg takes whatever height the bar leaves, and the smallest text
-   in it renders at SUB x that scale. On a 1280 x 720 laptop, a link that adds a two-line "Adjusted:"
-   note left the bar 219 px tall and the subscripts at 11.9 px -- under the floor. The track is 22 px
-   rather than 26, and the paddings are a pixel or two each, which is what buys that back. */
-.ctl { margin-bottom: 2px; }
-.ctl-head { font-size: 15px; line-height: 1.3; }
-.ctl-head label { cursor: pointer; }
-.readout { font-variant-numeric: tabular-nums; display: inline-block; min-width: 2.4em; text-align: right; }
-.zs { position: relative; padding-top: 2px; }
-/* THE SNAPPED DIRECTION, at 75% of the scale. The direction runs 0 to 360 degrees and sticks at 270,
-   which is (270 - 0) / (360 - 0) of the way along: a tick there, and a label that lights up while the
-   force is exactly on it -- the same moment the outlined weight in the figure fills in. A test ties
-   this percentage to the field's own snap value, so the two cannot drift apart. */
-.zt { position: absolute; left: 75%; top: 2px; width: 2px; height: 22px; margin-left: -1px; background: #c53030; border-radius: 1px; pointer-events: none; }
-.zs input[type=range] {
-  position: relative; z-index: 1; display: block; width: 100%; height: 22px; margin: 0; padding: 0;
-  background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none;
+.ctl-head { font-size: 15px; line-height: 1.4; }
+.readout { font-variant-numeric: tabular-nums; display: inline-block; min-width: 2.2em; text-align: right; font-weight: 700; }
+.snap-label {
+  display: inline-block; margin-left: 6px; padding: 0 9px; border-radius: 10px; white-space: nowrap;
+  font-size: 13px; font-weight: 700; color: #9aa1ab; border: 1px solid #d5dbe3;
+  transition: background .1s, color .1s, border-color .1s;
 }
-.zs input[type=range]:focus { outline: none; }
-.zs input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: #a0aec0; }
-.zs input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: #a0aec0; }
-.zs input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none; box-sizing: border-box; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%;
-  background: #ffffff; border: 3px solid #2d3748; box-shadow: 0 1px 3px #0004; transition: transform .08s, background .08s, border-color .08s;
-}
-.zs input[type=range]::-moz-range-thumb {
-  box-sizing: border-box; width: 22px; height: 22px; border-radius: 50%; background: #ffffff; border: 3px solid #2d3748; box-shadow: 0 1px 3px #0004;
-  transition: transform .08s, background .08s, border-color .08s;
-}
-.zs input[type=range]:hover::-webkit-slider-runnable-track { background: #718096; }
-.zs input[type=range]:hover::-moz-range-track { background: #718096; }
-.zs input[type=range]:hover::-webkit-slider-thumb { background: #ebf8ff; border-color: #2b6cb0; transform: scale(1.12); }
-.zs input[type=range]:hover::-moz-range-thumb { background: #ebf8ff; border-color: #2b6cb0; transform: scale(1.12); }
-.zs input[type=range]:active::-webkit-slider-thumb { background: #2b6cb0; border-color: #2c5282; transform: scale(1.2); }
-.zs input[type=range]:active::-moz-range-thumb { background: #2b6cb0; border-color: #2c5282; transform: scale(1.2); }
-.zs input[type=range]:focus-visible::-webkit-slider-thumb { border-color: #2b6cb0; box-shadow: 0 0 0 4px #2b6cb066; }
-.zs input[type=range]:focus-visible::-moz-range-thumb { border-color: #2b6cb0; box-shadow: 0 0 0 4px #2b6cb066; }
-.zl { position: relative; display: flex; justify-content: space-between; margin-top: 0; font-size: 13px; line-height: 1.3; opacity: .9; }
-.zl .snap-label {
-  position: absolute; left: 75%; transform: translateX(-50%); padding: 0 8px; font-weight: 700; color: #c53030;
-  border-radius: 10px; white-space: nowrap; transition: background .1s, color .1s;
-}
-.zl .snap-label.on { background: #c53030; color: #ffffff; }
-
+.snap-label.on { background: #c53030; border-color: #c53030; color: #ffffff; }
 </style>
 </head>
 <body>
@@ -110,20 +51,10 @@ body { margin: 0; padding: 0; height: 100vh; overflow: hidden; }
 <svg id="fig" viewBox="0 0 960 700" role="img" aria-label="Four diagrams of one beam. A horizontal beam runs from a pin in the wall at A to its free end at D, with a cable tied to it at B, taken up over a pulley at E on the ceiling and back down to a second tie at C; the weight that hung at D is left in outline, and the force at D can be dragged by the round handle at the arrow's tip. Beside and below it: the same beam as a single point carrying only the forces, the free-body diagram of the beam with the pin and the cable replaced by what they do, and the four forces drawn tip to tail."></svg>
 </div>
 <section id="controls" class="bar" aria-label="The force at D">
-  <div class="ctl">
-    <div class="ctl-head"><label for="f-slider"><b>Force at D</b></label> F<sub>D</sub> = <b id="f-readout" class="readout">200</b>&nbsp;lb <span class="hint">(or drag the arrowhead)</span></div>
-    <div class="zs">
-      <input type="range" id="f-slider" min="0" max="300" step="25" value="200">
-      <div class="zl"><span>0&nbsp;lb</span><span>300&nbsp;lb</span></div>
-    </div>
-  </div>
-  <div class="ctl">
-    <div class="ctl-head"><label for="dir-slider"><b>Direction at D</b></label> θ = <b id="dir-readout" class="readout">270</b>° <span class="hint">(0° along the beam to the right, 90° straight up)</span></div>
-    <div class="zs">
-      <i class="zt"></i>
-      <input type="range" id="dir-slider" min="0" max="360" step="5" value="270">
-      <div class="zl"><span>0°</span><span id="dir-snap" class="snap-label">270° straight down</span><span>360°</span></div>
-    </div>
+  <div class="ctl-head"><b>Force at D</b>
+    &nbsp; F<sub>D</sub> = <b id="f-readout" class="readout">200</b>&nbsp;lb
+    &nbsp; θ = <b id="dir-readout" class="readout">270</b>°
+    <span id="dir-snap" class="snap-label">straight down</span>
   </div>
   <p id="from-link" hidden></p>
 </section>
@@ -133,225 +64,74 @@ body { margin: 0; padding: 0; height: 100vh; overflow: hidden; }
 "use strict";
 // ===== format.js =====
 const MINUS = '−';           // U+2212, the true minus sign
-
-// A number and its unit are never separated by a line break: the space between them is a no-break space (U+00A0).
-// Written as an ESCAPE on purpose: a literal U+00A0 looks exactly like a plain space in every editor. A test
-// (test/nbsp.test.js) fails if any source or test file contains the literal character.
 const NBSP = '\u00a0';
-
-// The only way a number reaches the screen. Rounds here and nowhere else; a null or non-finite value prints as a
-// dash; and negative zero can never appear, because String(-0) is "0" and Number("-0.00") is -0.
 function fmt(n, dp = 2) {
-  if (n === null || n === undefined || !Number.isFinite(n)) return '—';
-  const s = String(Number(n.toFixed(dp)));
-  return s.startsWith('-') ? MINUS + s.slice(1) : s;
+if (n === null || n === undefined || !Number.isFinite(n)) return '—';
+const s = String(Number(n.toFixed(dp)));
+return s.startsWith('-') ? MINUS + s.slice(1) : s;
 }
-
-// Always exactly dp decimals ("0.20", "0.00"): for readings whose trailing zeros are part of the reading.
-// A tiny negative that rounds to zero prints "0.00" (toFixed keeps the sign: (-0.001).toFixed(2) is "-0.00").
 function fmtFixed(n, dp = 2) {
-  if (n === null || n === undefined || !Number.isFinite(n)) return '—';
-  let s = n.toFixed(dp);
-  if (/^-0(\.0*)?$/.test(s)) s = s.slice(1);
-  return s.startsWith('-') ? MINUS + s.slice(1) : s;
+if (n === null || n === undefined || !Number.isFinite(n)) return '—';
+let s = n.toFixed(dp);
+if (/^-0(\.0*)?$/.test(s)) s = s.slice(1);
+return s.startsWith('-') ? MINUS + s.slice(1) : s;
 }
-
-// Already-formatted text and its unit, joined the one allowed way: a no-break space, unless `join` says otherwise
-// (the degree sign prints "40°": see UNIT_JOIN in fields.js, which passes it).
 function withUnit(text, unit, join = NBSP) {
-  return `${text}${join}${unit}`;
+return `${text}${join}${unit}`;
 }
-
-// The inverse of fmt / fmtFixed: printed text (with a true minus sign) back to a number.
-function unfmt(text) {
-  return Number(String(text).replace(MINUS, '-'));
-}
-
-// A label as SEGMENTS -- [{ t: 'F' }, { t: 'B', sub: true }] -- read back as plain text. Segments are how
-// every symbol with a subscript travels: each renderer draws the `sub` ones as a real subscript (a <sub>
-// element, a lowered tspan), and this is the only way to get the whole label back as a string, for the
-// unit lint and for the tests. A plain string is allowed and means a single segment.
 function segPlain(segs) {
-  return typeof segs === 'string' ? segs : segs.map(s => (s.sub ? asSubscript(s.t) : s.t)).join('');
+return typeof segs === 'string' ? segs : segs.map(s => (s.sub ? asSubscript(s.t) : s.t)).join('');
 }
-
-// A digit in a SUBSCRIPT is part of a name, not a quantity: the 1 of M₁ is no more a number than the
-// B of F_B. The figure draws it as an ordinary lowered '1', but the plain-text form uses the Unicode
-// subscript, because the unit lint reads an ASCII digit as a bare number with no unit after it and
-// would reject the label. Letters are left alone: there is no Unicode subscript for most of them.
 const SUBSCRIPT_DIGITS = '₀₁₂₃₄₅₆₇₈₉';
-
 function asSubscript(text) {
-  return String(text).replace(/[0-9]/g, (d) => SUBSCRIPT_DIGITS[Number(d)]);
+return String(text).replace(/[0-9]/g, (d) => SUBSCRIPT_DIGITS[Number(d)]);
 }
-
 // ===== fields.js =====
-
-
-// ======================================================================================================
-// THE FIELDS TABLE: the one place that says what the learner can set.
-//
-// This simulation stores only the force at D: its magnitude and its direction. The beam's geometry and
-// the pulley's place are fixed (physics.js), and every other force is derived.
-//
-//   key       name in the state and in a URL preset (?f=200). Short, lower-case letters.
-//   id        stem of the DOM ids: #<id>-slider, #<id>-readout (and #<id>-mark when `mark` is set)
-//   label     the heading shown above the slider
-//   symbol    the physics symbol, as its BASE letter only ("F", "θ"). An ASCII digit in a name is a bare
-//             number to the unit lint, so a name that needs one takes `sub` instead.
-//   sub       OPTIONAL subscript, rendered as a real subscript everywhere it is shown: <sub> in HTML, a
-//             lowered tspan in SVG, a <sub> node in the link note. NEVER an ASCII underscore on screen.
-//             Todd's rule: a force is never named after a point, so the force at D is F_D, not D.
-//   subWord   OPTIONAL: `sub` as it should be SPOKEN, for aria text ("D", "x"). Required with `sub`.
-//   min, max, step   the slider's range; min and max are whole multiples of step
-//   unit      printed after a number; must be listed in test/unit-rule.js UNITS, with its word in UNIT_WORDS
-//   unitWord  the same unit in words, for aria-valuetext
-//   default   the starting value (on the grid)
-//   decimals  decimals printed and kept
-//   mark      OPTIONAL: a critical value, STRICTLY inside the range, shown but never snapped to:
-//             { value, label }.
-//   snap      OPTIONAL: a special value the input sticks to. { at, zone, jump } -- a value within
-//             `zone` of `at` becomes exactly `at`, and a keyboard nudge from `at` lands on at +/- jump
-//             so the arrow keys can leave the zone. `at` defaults to 0 (a quantity symmetric about
-//             zero, which is the usual case); here it is 270 degrees, straight down.
-//   noSlider  OPTIONAL: this input has no slider on the page and is set some other way. Neither input
-//             uses it here -- both have a slider AND can be dragged -- but state, presets and the
-//             browser harness all still honour it.
-// ======================================================================================================
-//
-// BOTH INPUTS CAN BE SET TWO WAYS, and that is deliberate. Dragging the arrow at D is the fast way and
-// the one the figure invites; the sliders are the exact way, because nobody drags to 215 degrees on
-// purpose. They are not two sources of truth: a drag and a slider both go through fieldSnap into the
-// same store, so they cannot disagree, and whichever you move the other follows.
 const FIELDS = [
-  { key: 'f', id: 'f', label: 'Force at D', symbol: 'F', sub: 'D', subWord: 'D',
-    min: 0, max: 300, step: 25, unit: 'lb', unitWord: 'pounds', default: 200, decimals: 0 },
-  // THE SNAP, and why it is at 270 rather than at zero. The figure leaves the hanging weight drawn in
-  // outline under D, so straight down is a direction the student is being invited to come back to: it
-  // is the textbook problem, and it is the only direction whose answer anyone has memorised. Ten
-  // degrees of stickiness is enough to land on it from a drag without fighting the mouse, and the
-  // keyboard jump of 15 is wider than the zone, so the arrow keys can always leave it. The cost is
-  // that 260, 265, 275 and 280 degrees cannot be set at all -- they are inside the zone, and a drag
-  // or a link that asks for one gets 270.
-  { key: 'dir', id: 'dir', label: 'Direction at D', symbol: 'θ',
-    min: 0, max: 360, step: 5, unit: '°', unitWord: 'degrees', default: 270, decimals: 0,
-    snap: { at: 270, zone: 10, jump: 15 } }
+{ key: 'f', id: 'f', label: 'Force at D', symbol: 'F', sub: 'D', subWord: 'D',
+min: 0, max: 300, step: 25, unit: 'lb', unitWord: 'pounds', default: 200, decimals: 0, noSlider: true },
+{ key: 'dir', id: 'dir', label: 'Direction at D', symbol: 'θ',
+min: 0, max: 360, step: 5, unit: '°', unitWord: 'degrees', default: 270, decimals: 0, noSlider: true,
+snap: { at: 270, zone: 10, jump: 15 } }
 ];
-
-// The inputs that really have a slider on the page. Everything that builds or checks a slider reads
-// this, not FIELDS; everything about state, presets and snapping still reads FIELDS.
 const SLIDER_FIELDS = FIELDS.filter(f => !f.noSlider);
-
-// An angle prints "270°", with nothing between the number and the unit. Every other unit is joined by U+00A0.
 const UNIT_JOIN = { '°': '' };
-
-// ------------------------------------------------------------------------------------------------------
-// Below this line everything is generic: no edit needed.
-// ------------------------------------------------------------------------------------------------------
-
 function fieldByKey(key) {
-  const f = FIELDS.find(g => g.key === key);
-  if (!f) throw new Error(`no input called "${key}"`);
-  return f;
+const f = FIELDS.find(g => g.key === key);
+if (!f) throw new Error(`no input called "${key}"`);
+return f;
 }
-
 function fieldDefaults() {
-  return Object.fromEntries(FIELDS.map(f => [f.key, f.default]));
+return Object.fromEntries(FIELDS.map(f => [f.key, f.default]));
 }
-
-// The value a snap field sticks to. A `snap` without `at` sticks to zero, which is what a quantity
-// symmetric about zero wants and what every earlier simulation in this series used.
 function snapAt(f) {
-  return f.snap ? (f.snap.at === undefined ? 0 : f.snap.at) : null;
+return f.snap ? (f.snap.at === undefined ? 0 : f.snap.at) : null;
 }
-
-// Raw slider value -> allowed value: clamp, round to whole steps and clean the float noise by rounding to the
-// field's decimals; a snap zone collapses to the field's snap value. Non-finite input becomes that snap value for
-// a snap field and the minimum otherwise. The result is never -0.
 function fieldSnap(f, v) {
-  if (!Number.isFinite(v)) return f.snap ? snapAt(f) : f.min;
-  const clamped = Math.max(f.min, Math.min(f.max, v));
-  const stepped = Number((Math.round(clamped / f.step) * f.step).toFixed(f.decimals));
-  return f.snap && Math.abs(stepped - snapAt(f)) <= f.snap.zone ? snapAt(f) : stepped;
+if (!Number.isFinite(v)) return f.snap ? snapAt(f) : f.min;
+const clamped = Math.max(f.min, Math.min(f.max, v));
+const stepped = Number((Math.round(clamped / f.step) * f.step).toFixed(f.decimals));
+return f.snap && Math.abs(stepped - snapAt(f)) <= f.snap.zone ? snapAt(f) : stepped;
 }
-
-// Slider input handler. Only a field with `snap` jumps past its zone on a keyboard step.
 function fieldNext(f, prev, raw, viaKeyboard) {
-  const snapped = fieldSnap(f, raw);
-  const at = snapAt(f);
-  if (f.snap && viaKeyboard && prev === at && snapped === at && raw !== at && Number.isFinite(raw)) {
-    return fieldSnap(f, raw > at ? at + f.snap.jump : at - f.snap.jump);
-  }
-  return snapped;
+const snapped = fieldSnap(f, raw);
+const at = snapAt(f);
+if (f.snap && viaKeyboard && prev === at && snapped === at && raw !== at && Number.isFinite(raw)) {
+return fieldSnap(f, raw > at ? at + f.snap.jump : at - f.snap.jump);
 }
-
-// The value as printed: fixed decimals, true minus sign, never -0.
+return snapped;
+}
 function fieldShow(f, v) {
-  return fmtFixed(v, f.decimals);
+return fmtFixed(v, f.decimals);
 }
-
-// A printed number and its unit, joined by a no-break space or as UNIT_JOIN says.
 function unitText(text, unit, joins = UNIT_JOIN) {
-  return withUnit(text, unit, Object.hasOwn(joins, unit) ? joins[unit] : undefined);
+return withUnit(text, unit, Object.hasOwn(joins, unit) ? joins[unit] : undefined);
 }
-
-// The value with its unit.
 function fieldText(f, v, joins = UNIT_JOIN) {
-  return unitText(fieldShow(f, v), f.unit, joins);
+return unitText(fieldShow(f, v), f.unit, joins);
 }
-
-// A symbol as SEGMENTS, so every renderer can draw a real subscript and none has to parse a string:
-// [{ t: 'F' }, { t: 'D', sub: true }]. The only way a symbol reaches the screen.
-function fieldSymbol(f) {
-  return f.sub ? [{ t: f.symbol }, { t: f.sub, sub: true }] : [{ t: f.symbol }];
-}
-
-// The same symbol as it should be SPOKEN ("F sub D"), for aria text. Digits are spelled out by subWord.
-function fieldSymbolWord(f) {
-  return f.sub ? `${f.symbol} sub ${f.subWord}` : f.symbol;
-}
-
 // ===== physics.js =====
-// The statics: pure functions of the stored inputs, no DOM.
-//
-// A horizontal beam A-D. A is a PIN in the wall, so it can push in any direction in the plane: two
-// unknown components. One cable is tied to the beam at B, runs up over a pulley at E and comes back
-// down to the beam at C. The student sets the force at D -- its magnitude `f` and its direction
-// `dir`, measured CCW from +x, so straight down (the hanging weight) is 270 degrees.
-//
-// THE PULLEY IS A POINT, AND THAT IS WHERE THE DRAWN 2:1 SLOPE COMES FROM. Idealised, the cable runs
-// from B straight up to E and from E straight down to C. The segment at B is vertical, so E is
-// directly above B; the segment at C is drawn with a slope of 2 up to 1 across, and C is 5 ft right
-// of B, so E stands 2 * 5 = 10 ft above the beam. The wheel of radius PULLEY_R drawn in the figure is
-// tangent to both of those lines and sits BELOW the point E -- it is scenery, and no equation uses it.
-//
-// A FRICTIONLESS PULLEY TURNS THE CABLE WITHOUT CHANGING ITS TENSION, so both segments pull with the
-// same magnitude T. That single fact is what makes the problem solvable: it leaves three unknowns --
-// F_Ax, F_Ay and T -- for the three equations of a rigid body in a plane.
-//
-// NOTATION (the Wiki_Vault reference): a force is never named after a point. The pin reaction is
-// F_A with components F_Ax and F_Ay; the force the cable puts on the beam takes BOTH letters of the
-// segment it acts along, F_BE at B and F_CE at C, in the same double-subscript form as a two-force
-// member (F_CD = F_CD * r_hat_CD). Their common magnitude is the cable's tension. The applied force
-// at D is F_D. A symbol with the arrow over it is the vector; without it, the magnitude.
-//
-// Axes: x right, y up, moments counterclockwise positive. Three unknowns, three equations:
-//
-//   sum M_A = 0:  x_B T + x_C (2/sqrt5) T + x_D F_Dy = 0  ->  T = -x_D F_Dy / (x_B + x_C 2/sqrt5)
-//   sum F_x = 0:  F_Ax - T/sqrt5 + F_Dx = 0               ->  F_Ax = T/sqrt5 - F_Dx
-//   sum F_y = 0:  F_Ay + T + 2T/sqrt5 + F_Dy = 0          ->  F_Ay = -T(1 + 2/sqrt5) - F_Dy
-//
-// The moment equation holds T on its own because both of the other unknowns act AT A. Note what the
-// first line says: the tension answers to the VERTICAL component of the force at D and to nothing
-// else. Swing the force at D horizontal and the cable goes limp however hard you pull.
-//
-// WHEN THE TENSION COMES OUT NEGATIVE. Push UP at D (any direction with F_Dy > 0) and the equations
-// ask the cable to push the beam down. A cable cannot push. There is then no equilibrium with this
-// cable in it: the cable goes slack and the beam swings. `slack` says so, and the figure says so in
-// words rather than drawing a cable in compression as though it were an answer.
-
 const DEG = Math.PI / 180;
-
 const AB = 5;                 // ft, A to B
 const BC = 5;                 // ft, B to C
 const CD = 3;                 // ft, C to D
@@ -359,1598 +139,994 @@ const X_B = AB;               // 5 ft, where the cable is tied the first time
 const X_C = AB + BC;          // 10 ft, where it is tied the second time
 const X_D = AB + BC + CD;     // 13 ft, the loaded end
 const SPAN = X_D;
-
 const H_E = 2 * BC;           // ft: the slope is 2 to 1 and E stands over B, BC ft from C
 const PULLEY_R = 0.642857;    // ft, DRAWN ONLY: the wheel tangent to both cable lines
-
 const SQ5 = Math.sqrt(5);
-
 const FORCE_DP = 1;           // decimals printed for a force, in pounds
 const ANGLE_DP = 0;           // decimals printed for the direction, in degrees
-
-// Unit vectors from each tie point toward E: the direction the cable pulls the beam.
 const U_BE = { x: 0, y: 1 };                  // straight up
 const U_CE = { x: -1 / SQ5, y: 2 / SQ5 };     // up and to the left, 2 up per 1 across
-
-// The subscript of each force's name. ONE source of truth, so the figure, the tests and the harness
-// can never drift apart. A cable force takes both letters of its segment; the pin takes its support.
 const FORCE_SUB = { load: 'D', cableB: 'BE', cableC: 'CE', pin: 'A' };
 const COMPONENT_SUB = { x: 'Ax', y: 'Ay' };
-
-// The denominator of the moment equation: the moment about A that one pound of tension produces.
 const MOMENT_PER_T = X_B * U_BE.y + X_C * U_CE.y;    // = 5 + 4 sqrt5 = 13.944...
-
-// cos and sin of a whole number of degrees, EXACT at the quadrant points. Math.cos(270 * DEG) is
-// -1.8e-16, not 0, which would leave a hair of horizontal force in a force that is exactly vertical.
-// Here that hair would land in F_Ax, which at the straight-down setting is pure cable pull: the
-// figure would print a reaction that is wrong in its last digit for the one state students check.
 function cosDeg(d) {
-  const m = ((d % 360) + 360) % 360;
-  if (m === 90 || m === 270) return 0;
-  if (m === 0) return 1;
-  if (m === 180) return -1;
-  return Math.cos(m * DEG);
+const m = ((d % 360) + 360) % 360;
+if (m === 90 || m === 270) return 0;
+if (m === 0) return 1;
+if (m === 180) return -1;
+return Math.cos(m * DEG);
 }
-
 function sinDeg(d) {
-  const m = ((d % 360) + 360) % 360;
-  if (m === 0 || m === 180) return 0;
-  if (m === 90) return 1;
-  if (m === 270) return -1;
-  return Math.sin(m * DEG);
+const m = ((d % 360) + 360) % 360;
+if (m === 0 || m === 180) return 0;
+if (m === 90) return 1;
+if (m === 270) return -1;
+return Math.sin(m * DEG);
 }
-
-// The force at D as components, in pounds. Adding 0 turns -0 into 0.
 function loadComponents(s) {
-  return { x: s.f * cosDeg(s.dir) + 0, y: s.f * sinDeg(s.dir) + 0 };
+return { x: s.f * cosDeg(s.dir) + 0, y: s.f * sinDeg(s.dir) + 0 };
 }
-
-// The cable's tension, in pounds, from the moment equation about A. Signed: a negative value is the
-// pull the cable would need in order to push, which it cannot do.
 function tension(s) {
-  return -X_D * loadComponents(s).y / MOMENT_PER_T + 0;
+return -X_D * loadComponents(s).y / MOMENT_PER_T + 0;
 }
-
-// Everything that is shown but not stored.
 function derive(s) {
-  const D = loadComponents(s);
-  const t = tension(s);
-  const BE = { x: t * U_BE.x + 0, y: t * U_BE.y + 0 };
-  const CE = { x: t * U_CE.x + 0, y: t * U_CE.y + 0 };
-  const A = { x: -(BE.x + CE.x + D.x) + 0, y: -(BE.y + CE.y + D.y) + 0 };
-  return {
-    D, BE, CE, A, t,
-    magD: Math.hypot(D.x, D.y),
-    magBE: Math.abs(t),
-    magCE: Math.abs(t),
-    magA: Math.hypot(A.x, A.y),
-    slack: t < 0
-  };
+const D = loadComponents(s);
+const t = tension(s);
+const BE = { x: t * U_BE.x + 0, y: t * U_BE.y + 0 };
+const CE = { x: t * U_CE.x + 0, y: t * U_CE.y + 0 };
+const A = { x: -(BE.x + CE.x + D.x) + 0, y: -(BE.y + CE.y + D.y) + 0 };
+return {
+D, BE, CE, A, t,
+magD: Math.hypot(D.x, D.y),
+magBE: Math.abs(t),
+magCE: Math.abs(t),
+magA: Math.hypot(A.x, A.y),
+slack: t < 0
+};
 }
-
-// The direction of a vector, in degrees CCW from +x in [0, 360), or null for a vector of no length.
-function headingOf(v) {
-  if (!(Math.hypot(v.x, v.y) > 0)) return null;
-  const deg = Math.atan2(v.y, v.x) * 180 / Math.PI;
-  return deg < 0 ? deg + 360 : deg;
-}
-
 // ===== layout.js =====
-// Pure geometry for the figure: where everything is drawn, in viewBox units. No DOM, no drawing.
-// scene.js turns this into SVG; the browser harness checks the result against the same numbers.
-//
-// The figure is ONE svg with four panels, so the harness keeps its single-figure model:
-//   1  the space diagram   (the given situation, with the draggable force at D)
-//   2  the point FBD       (the beam shrunk to a point, all four forces from it)
-//   3  the extended FBD    (the beam alone, forces at the points where they act)
-//   4  the force polygon   (the same four forces tip to tail, closing)
-//
-// Screen y runs DOWN and physics y runs UP, so every physics vector (vx, vy) becomes the screen
-// delta (vx, -vy) * FORCE_U. That flip happens in exactly one place: screenDelta().
-
-
 const VB = { w: 960, h: 700 };
-
-// WHY THIS FIGURE IS TALLER THAN THE LAST ONE. The page must fit a Canvas iframe (800 x 750) with no
-// vertical scroll. The last simulation used a 960 x 616 viewBox; this one needs more height because
-// the space diagram is not just a beam -- the pulley stands TEN FEET above a thirteen-foot beam, so
-// that panel is nearly as tall as it is wide. At 960 x 700 and the iframe's 784 px of width the
-// figure renders 784 x 572, which clears the 750 px budget with the control bar underneath, and the
-// 21-unit base text still renders at 17.2 px, well over the 12 px floor.
-
 const FORCE_U = 0.25;     // viewBox units per pound -- ONE scale for panels 1 to 3
 const FOOT_U = 26;        // viewBox units per foot of beam, in BOTH beam panels
 const TEXT = 21;          // base label size: 21 * (784/960) = 17.2 px rendered
-// A subscript, and every caption. SEVENTEEN, not the sixteen the last simulation used, and the
-// reason is the reading bar rather than the figure. The figure is sized to fit what is left under
-// the bar, so a link that adds a two-line "Adjusted:" note shrinks it: at 800 x 750 the scale drops
-// from 0.817 to 0.736, and sixteen units then renders at 11.8 px -- under the floor. Seventeen
-// renders at 12.5 px in that state and 13.9 px in the ordinary one, which leaves room for a
-// three-line note as well. The browser harness's query probes are what found this; the sweep on the
-// page itself never sees it, because the page itself never shows a link note.
 const SUB = 17;
 const HEAD_MAX = 12;      // longest arrowhead
 const HANDLE_R = 10;      // the drag handle's drawn radius
 const HANDLE_HIT = 24;    // and how close a press counts as grabbing it
-
-// The hanging weight, drawn in OUTLINE under D whatever direction the force is pointing. It is the
-// textbook problem left on the page: the one direction whose answer anyone has memorised. The force
-// snaps to it (see `snap` in fields.js) and the outline fills in when it does, so the snap is visible
-// and not just felt. Sizes in feet, measured down from the top of the beam.
 const MASS_DROP = 0.3;    // length of the hanger line between the beam and the top of the mass
 const MASS_H = 1.9;       // height of the drawn cylinder
 const MASS_W = 1.5;       // its width
 const MASS_RX = 0.38;     // how round its ends are drawn
-
-// The slope triangle on the inclined run of cable: a right triangle whose hypotenuse IS the cable, so
-// the numbers on the figure cannot disagree with the line they describe. Its legs are a whole 2 ft
-// down and 1 ft across, and they are LABELLED AS LENGTHS rather than as a bare ratio -- "2" and "1"
-// alone are numbers with no unit, which is exactly what the unit lint refuses, and rightly: a reader
-// has to guess what they count. Two feet down per one foot across says the same thing and is true.
 const SLOPE_AT = 7.2;     // ft from A: where the triangle's top corner sits on the cable
 const SLOPE_RISE = 2;     // ft down from there
 const SLOPE_RUN = 1;      // and ft across: the hypotenuse lands back on the cable, exactly
-
-// The wall at A, and the ceiling the pulley hangs from: how far each reaches.
 const WALL_REACH = 58;
 const CEIL_REACH = 46;
-
-// ---------------------------------------------------------------------------------------------
-// MEASURED IN CHROMIUM, not derived: how far a label's PAINTED box reaches from its baseline, as a
-// fraction of its font size, and the smallest scale the figure is ever drawn at. These are what a
-// unit test has to compare against when it asks whether two lines of text clear each other or
-// whether the smallest text clears the 12 px floor -- the font size alone answers neither.
-//
-// INK_BELOW_SUB is the deeper descent of a label whose subscript hangs below the baseline (F_D), as
-// against INK_BELOW for one with no descender (a heading, a caption, "5 ft").
-//
-// WORST_SCALE is the tight case, and it is not the smaller window on its own: the figure takes
-// whatever height the control bar leaves it, so the worst state is 1280 x 720 WITH a link note long
-// enough to wrap onto a second line. Measured there: 0.7206, at which SUB renders at 12.25 px.
-// ---------------------------------------------------------------------------------------------
 const INK_ABOVE = 0.978;
 const INK_BELOW = 0.201;
 const INK_BELOW_SUB = 0.473;
 const WORST_SCALE = 0.7206;
 const MIN_TEXT_PX = 12;
-
-// The four panels. `baseX` is where A sits in the panels that draw the beam; `baseY` is the top face
-// of the beam, which is where every point of the beam is taken to be.
 const PANELS = {
-  space: { headY: 22, headX: 10, baseX: 62, baseY: 268, dimY: 355, dimLabelY: 384,
-           box: { x0: 8, x1: 590, y0: 6, y1: 398 } },
-  point: { headY: 22, headX: 614, ox: 777, oy: 200,
-           box: { x0: 602, x1: 952, y0: 6, y1: 398 } },
-  ext:   { headY: 432, headX: 10, baseX: 132, baseY: 590,
-           box: { x0: 8, x1: 594, y0: 410, y1: 694 } },
-  // THE POLYGON IS THE PANEL THAT RUNS OUT OF ROOM, so it takes width off the free-body diagram
-  // rather than the other way round. The free-body diagram has slack -- the beam is 338 units wide in
-  // a panel nearly 600 across -- while the polygon has four mid-side labels and, whenever two of its
-  // sides run nearly parallel, two of them start out almost on top of each other.
-  poly:  { headY: 432, headX: 612, x0: 612, x1: 946, y0: 466, y1: 676,
-           box: { x0: 606, x1: 952, y0: 410, y1: 694 } }
+space: { headY: 22, headX: 10, baseX: 62, baseY: 268, dimY: 355, dimLabelY: 384,
+box: { x0: 8, x1: 590, y0: 6, y1: 398 } },
+point: { headY: 22, headX: 614, ox: 777, oy: 200,
+box: { x0: 602, x1: 952, y0: 6, y1: 398 } },
+ext:   { headY: 432, headX: 10, baseX: 132, baseY: 590,
+box: { x0: 8, x1: 594, y0: 410, y1: 694 } },
+poly:  { headY: 432, headX: 612, x0: 612, x1: 946, y0: 466, y1: 676,
+box: { x0: 606, x1: 952, y0: 410, y1: 694 } }
 };
-// The rules between them: one across, and one down each row.
 const SPLITS = {
-  across: { y: 404, x0: 8, x1: 952 },
-  upper:  { x: 596, y0: 8, y1: 398 },
-  lower:  { x: 600, y0: 412, y1: 694 }
+across: { y: 404, x0: 8, x1: 952 },
+upper:  { x: 596, y0: 8, y1: 398 },
+lower:  { x: 600, y0: 412, y1: 694 }
 };
-
-// The beam's four points, in whichever panel is asked for. Both beam panels use the same scale, so
-// the beam is the same beam in each and an arrow of a given length means the same thing in both.
 function beamPoints(baseY, baseX) {
-  return {
-    A: { x: baseX, y: baseY },
-    B: { x: baseX + X_B * FOOT_U, y: baseY },
-    C: { x: baseX + X_C * FOOT_U, y: baseY },
-    D: { x: baseX + X_D * FOOT_U, y: baseY }
-  };
+return {
+A: { x: baseX, y: baseY },
+B: { x: baseX + X_B * FOOT_U, y: baseY },
+C: { x: baseX + X_C * FOOT_U, y: baseY },
+D: { x: baseX + X_D * FOOT_U, y: baseY }
+};
 }
-
-// A point given in FEET from A, with y up from the beam, placed in a panel.
 function atFoot(p, baseY, baseX) {
-  return { x: baseX + p.x * FOOT_U, y: baseY - p.y * FOOT_U };
+return { x: baseX + p.x * FOOT_U, y: baseY - p.y * FOOT_U };
 }
-
-// A physics vector in pounds -> a screen delta in viewBox units. The ONE place y is flipped.
 function screenDelta(v, scale = FORCE_U) {
-  return { x: v.x * scale, y: -v.y * scale };
+return { x: v.x * scale, y: -v.y * scale };
 }
-
-// ---------------------------------------------------------------------------------------------
-// The cable and its pulley, in FEET, with y measured up from the top of the beam.
-//
-// physics.js idealises the pulley to the point E, directly above B and H_E feet up, and that point
-// is never drawn. What IS drawn is a wheel of radius PULLEY_R tangent to both cable lines, which is
-// what the textbook figure shows. Its centre is found from the two tangency conditions, not placed
-// by eye: it sits PULLEY_R to the right of the vertical run, and PULLEY_R from the line through C
-// and E, which is 2x + y = 2 X_B + H_E.
-// ---------------------------------------------------------------------------------------------
 const SLOPE_C = 2 * X_B + H_E;      // the inclined cable's line: 2x + y = SLOPE_C
-
 function pulleyGeom() {
-  const cx = X_B + PULLEY_R;
-  // Below the inclined line by PULLEY_R, measured along its unit normal (2, 1)/sqrt5.
-  const cy = SLOPE_C - 2 * cx - PULLEY_R * SQ5;
-  const centre = { x: cx, y: cy };
-  return {
-    centre,
-    r: PULLEY_R,
-    apex: { x: X_B, y: H_E },                                    // the idealised point E
-    tanB: { x: X_B, y: cy },                                     // where the vertical run leaves the wheel
-    tanC: { x: cx + PULLEY_R * 2 / SQ5, y: cy + PULLEY_R / SQ5 } // and where the inclined run leaves it
-  };
+const cx = X_B + PULLEY_R;
+const cy = SLOPE_C - 2 * cx - PULLEY_R * SQ5;
+const centre = { x: cx, y: cy };
+return {
+centre,
+r: PULLEY_R,
+apex: { x: X_B, y: H_E },                                    // the idealised point E
+tanB: { x: X_B, y: cy },                                     // where the vertical run leaves the wheel
+tanC: { x: cx + PULLEY_R * 2 / SQ5, y: cy + PULLEY_R / SQ5 } // and where the inclined run leaves it
+};
 }
-
-// The drawn cable, as the SHORT SEGMENTS it is really made of: the vertical run up from B, the arc
-// over the top of the wheel, and the inclined run down to C. Cut up for the same reason an arrow's
-// shaft is (see svg.js): every overlap check works on bounding rectangles, and one long diagonal
-// claims its whole rectangle, which would make the clear space beside the cable unusable for labels.
 function cableSegments(baseY, baseX, segLen = SHAFT_SEG) {
-  const g = pulleyGeom();
-  const B = { x: X_B, y: 0 };
-  const C = { x: X_C, y: 0 };
-  const out = [];
-  const run = (from, to) => {
-    const a = atFoot(from, baseY, baseX), b = atFoot(to, baseY, baseX);
-    const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / segLen));
-    for (let i = 0; i < n; i++) {
-      out.push({
-        x1: a.x + (b.x - a.x) * (i / n), y1: a.y + (b.y - a.y) * (i / n),
-        x2: a.x + (b.x - a.x) * ((i + 1) / n), y2: a.y + (b.y - a.y) * ((i + 1) / n)
-      });
-    }
-  };
-  run(B, g.tanB);
-  // the arc, from the vertical tangent point over the top to the inclined one, in short chords
-  const a0 = Math.atan2(g.tanB.y - g.centre.y, g.tanB.x - g.centre.x);
-  const a1 = Math.atan2(g.tanC.y - g.centre.y, g.tanC.x - g.centre.x);
-  const sweep = ((a1 - a0) + 2 * Math.PI) % (2 * Math.PI);       // counterclockwise in FEET, i.e. over the top
-  const steps = Math.max(3, Math.ceil(g.r * FOOT_U * sweep / segLen));
-  let prev = g.tanB;
-  for (let i = 1; i <= steps; i++) {
-    const t = a0 + sweep * (i / steps);
-    const next = { x: g.centre.x + g.r * Math.cos(t), y: g.centre.y + g.r * Math.sin(t) };
-    run(prev, next);
-    prev = next;
-  }
-  run(g.tanC, C);
-  return out;
+const g = pulleyGeom();
+const B = { x: X_B, y: 0 };
+const C = { x: X_C, y: 0 };
+const out = [];
+const run = (from, to) => {
+const a = atFoot(from, baseY, baseX), b = atFoot(to, baseY, baseX);
+const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / segLen));
+for (let i = 0; i < n; i++) {
+out.push({
+x1: a.x + (b.x - a.x) * (i / n), y1: a.y + (b.y - a.y) * (i / n),
+x2: a.x + (b.x - a.x) * ((i + 1) / n), y2: a.y + (b.y - a.y) * ((i + 1) / n)
+});
 }
-
-// The 2-to-1 slope triangle: its corner on the cable, straight down, then across back ONTO the cable.
+};
+run(B, g.tanB);
+const a0 = Math.atan2(g.tanB.y - g.centre.y, g.tanB.x - g.centre.x);
+const a1 = Math.atan2(g.tanC.y - g.centre.y, g.tanC.x - g.centre.x);
+const sweep = ((a1 - a0) + 2 * Math.PI) % (2 * Math.PI);       // counterclockwise in FEET, i.e. over the top
+const steps = Math.max(3, Math.ceil(g.r * FOOT_U * sweep / segLen));
+let prev = g.tanB;
+for (let i = 1; i <= steps; i++) {
+const t = a0 + sweep * (i / steps);
+const next = { x: g.centre.x + g.r * Math.cos(t), y: g.centre.y + g.r * Math.sin(t) };
+run(prev, next);
+prev = next;
+}
+run(g.tanC, C);
+return out;
+}
 function slopeTriangle(baseY, baseX) {
-  const top = { x: SLOPE_AT, y: SLOPE_C - 2 * SLOPE_AT };
-  const foot = { x: SLOPE_AT, y: top.y - SLOPE_RISE };
-  const right = { x: SLOPE_AT + SLOPE_RUN, y: foot.y };
-  return {
-    top: atFoot(top, baseY, baseX),
-    foot: atFoot(foot, baseY, baseX),
-    right: atFoot(right, baseY, baseX),
-    riseLabel: atFoot({ x: SLOPE_AT - 0.2, y: top.y - SLOPE_RISE / 2 }, baseY, baseX),
-    runLabel: atFoot({ x: SLOPE_AT + SLOPE_RUN / 2, y: foot.y - 0.22 }, baseY, baseX)
-  };
+const top = { x: SLOPE_AT, y: SLOPE_C - 2 * SLOPE_AT };
+const foot = { x: SLOPE_AT, y: top.y - SLOPE_RISE };
+const right = { x: SLOPE_AT + SLOPE_RUN, y: foot.y };
+return {
+top: atFoot(top, baseY, baseX),
+foot: atFoot(foot, baseY, baseX),
+right: atFoot(right, baseY, baseX),
+riseLabel: atFoot({ x: SLOPE_AT - 0.2, y: top.y - SLOPE_RISE / 2 }, baseY, baseX),
+runLabel: atFoot({ x: SLOPE_AT + SLOPE_RUN / 2, y: foot.y - 0.22 }, baseY, baseX)
+};
 }
-
-// The hanging weight drawn in outline under D: the hanger line and the body's rectangle.
 function massOutline(baseY, baseX) {
-  const D = beamPoints(baseY, baseX).D;
-  const top = D.y + 8 + MASS_DROP * FOOT_U;          // 8 units: the half-thickness of the drawn beam
-  return {
-    hook: { x: D.x, y: D.y + 8 },
-    top: { x: D.x, y: top },
-    body: { x: D.x - MASS_W * FOOT_U / 2, y: top, w: MASS_W * FOOT_U, h: MASS_H * FOOT_U, rx: MASS_RX * FOOT_U },
-    box: { x0: D.x - MASS_W * FOOT_U / 2, x1: D.x + MASS_W * FOOT_U / 2, y0: D.y + 8, y1: top + MASS_H * FOOT_U }
-  };
+const D = beamPoints(baseY, baseX).D;
+const top = D.y + 8 + MASS_DROP * FOOT_U;          // 8 units: the half-thickness of the drawn beam
+return {
+hook: { x: D.x, y: D.y + 8 },
+top: { x: D.x, y: top },
+body: { x: D.x - MASS_W * FOOT_U / 2, y: top, w: MASS_W * FOOT_U, h: MASS_H * FOOT_U, rx: MASS_RX * FOOT_U },
+box: { x0: D.x - MASS_W * FOOT_U / 2, x1: D.x + MASS_W * FOOT_U / 2, y0: D.y + 8, y1: top + MASS_H * FOOT_U }
+};
 }
-
-// ---------------------------------------------------------------------------------------------
-// The forces
-// ---------------------------------------------------------------------------------------------
-
-// The four FORCES of state s, in the order the figure introduces them, with the colour class each
-// renderer uses. `at` is where the force acts, in feet from A; `vec` is the force in pounds. The two
-// cable forces share a class -- they are one cable, and their equal magnitude is the whole point.
 function forceList(s) {
-  const d = derive(s);
-  return [
-    { key: 'load',   at: X_D, vec: d.D,  mag: d.magD,  cls: 'load' },
-    { key: 'cableB', at: X_B, vec: d.BE, mag: d.magBE, cls: 'cable' },
-    { key: 'cableC', at: X_C, vec: d.CE, mag: d.magCE, cls: 'cable' },
-    { key: 'pin',    at: 0,   vec: d.A,  mag: d.magA,  cls: 'pin' }
-  ];
+const d = derive(s);
+return [
+{ key: 'load',   at: X_D, vec: d.D,  mag: d.magD,  cls: 'load' },
+{ key: 'cableB', at: X_B, vec: d.BE, mag: d.magBE, cls: 'cable' },
+{ key: 'cableC', at: X_C, vec: d.CE, mag: d.magCE, cls: 'cable' },
+{ key: 'pin',    at: 0,   vec: d.A,  mag: d.magA,  cls: 'pin' }
+];
 }
-
-// Panel 1: the force at D has its TAIL on the beam at D and its TIP at the drag handle, so the handle
-// is out where the weight hangs and dragging it is dragging the arrow itself. Returns null when there
-// is no force to draw.
 function loadArrow(s, baseY = PANELS.space.baseY, baseX = PANELS.space.baseX) {
-  const d = derive(s);
-  if (d.magD === 0) return null;
-  const D = beamPoints(baseY, baseX).D;
-  const dl = screenDelta(d.D);
-  return { tail: D, tip: { x: D.x + dl.x, y: D.y + dl.y } };
+const d = derive(s);
+if (d.magD === 0) return null;
+const D = beamPoints(baseY, baseX).D;
+const dl = screenDelta(d.D);
+return { tail: D, tip: { x: D.x + dl.x, y: D.y + dl.y } };
 }
-
-// Where the handle rests when there is no force to draw: just below D, on the hanger, where the
-// weight would pull. interact.js and scene.js must agree on this, so it lives here.
 const HANDLE_REST = 46;
-
 function handleRest(baseY = PANELS.space.baseY, baseX = PANELS.space.baseX) {
-  const D = beamPoints(baseY, baseX).D;
-  return { x: D.x, y: D.y + HANDLE_REST };
+const D = beamPoints(baseY, baseX).D;
+return { x: D.x, y: D.y + HANDLE_REST };
 }
-
-// The inverse: a handle dropped at `tip` means the force runs from D OUT to there. Magnitude in
-// pounds and direction in degrees CCW from +x, ready for the fields' own snapping. A handle exactly
-// on D keeps the old direction, because a zero vector has none.
 function loadFromHandle(tip, prevDir, baseY = PANELS.space.baseY, baseX = PANELS.space.baseX) {
-  const D = beamPoints(baseY, baseX).D;
-  const vx = (tip.x - D.x) / FORCE_U;
-  const vy = -(tip.y - D.y) / FORCE_U;              // back to physics y, which runs up
-  const mag = Math.hypot(vx, vy);
-  if (!(mag > 1e-9)) return { f: 0, dir: prevDir };
-  const deg = Math.atan2(vy, vx) * 180 / Math.PI;
-  return { f: mag, dir: deg < 0 ? deg + 360 : deg };
+const D = beamPoints(baseY, baseX).D;
+const vx = (tip.x - D.x) / FORCE_U;
+const vy = -(tip.y - D.y) / FORCE_U;              // back to physics y, which runs up
+const mag = Math.hypot(vx, vy);
+if (!(mag > 1e-9)) return { f: 0, dir: prevDir };
+const deg = Math.atan2(vy, vx) * 180 / Math.PI;
+return { f: mag, dir: deg < 0 ? deg + 360 : deg };
 }
-
-// Panels 2 and 3: an FBD arrow has its TAIL where the force acts and its tip in the force's direction.
-// Panel 3 spreads them along the beam; panel 2 puts every tail on one point.
 function fbdArrows(s, origin, spread) {
-  const out = [];
-  for (const f of forceList(s)) {
-    if (f.mag === 0) continue;
-    const tail = spread ? { x: origin.x + f.at * FOOT_U, y: origin.y } : { x: origin.x, y: origin.y };
-    const dl = screenDelta(f.vec);
-    out.push({ ...f, tail, tip: { x: tail.x + dl.x, y: tail.y + dl.y } });
-  }
-  return out;
+const out = [];
+for (const f of forceList(s)) {
+if (f.mag === 0) continue;
+const tail = spread ? { x: origin.x + f.at * FOOT_U, y: origin.y } : { x: origin.x, y: origin.y };
+const dl = screenDelta(f.vec);
+out.push({ ...f, tail, tip: { x: tail.x + dl.x, y: tail.y + dl.y } });
 }
-
-// Panel 4: the same four forces laid tip to tail, in the order the FBD introduces them. The chain must
-// come back to where it started, which is the whole point of the picture. Returns the vertices in
-// POUNDS, physics axes; fitPolygon turns them into viewBox units.
+return out;
+}
 function polygonVertices(s) {
-  const pts = [{ x: 0, y: 0 }];
-  for (const f of forceList(s)) {
-    const last = pts[pts.length - 1];
-    pts.push({ x: last.x + f.vec.x, y: last.y + f.vec.y });
-  }
-  return pts;
+const pts = [{ x: 0, y: 0 }];
+for (const f of forceList(s)) {
+const last = pts[pts.length - 1];
+pts.push({ x: last.x + f.vec.x, y: last.y + f.vec.y });
 }
-
-// Fit a set of physics points into a box, keeping the aspect ratio and leaving `pad` units of margin.
-// Returns a mapping function and the scale, in viewBox units per pound, so the figure can draw a scale
-// bar. A degenerate set (every point equal, or a straight line) still gets a usable scale.
-//
-// THE MARGIN IS NOT THE SAME BOTH WAYS, and the figure is unreadable if it is. A force label is wide
-// and short, so the room it needs is mostly sideways; the panel, meanwhile, is far wider than it is
-// tall. Setting both margins to the horizontal one left only 62 units of height for the polygon, and
-// a chain whose longest side is a 200 lb force came out 62 units from end to end -- a smudge beside
-// four full-size labels. These two numbers are swept separately below.
-//
-// WHY THE HORIZONTAL MARGIN IS THIS BIG, AND WHY MORE WOULD BE WORSE. The four side labels sit outside the
-// middle of their own sides, so the room they need is room AROUND the polygon, not inside the panel
-// generally: widening the panel barely helped, and shrinking the polygon did. Swept over every state
-// of the grid, 46 units of margin left 28 states with two labels touching, 64 left one, and 74 left
-// none -- but 78 left ten and 82 left thirty-one, because a polygon drawn small enough brings all
-// four of its sides' midpoints together and no amount of shoving can separate labels that all start
-// in the same place. 74 is the floor of that window, not a number that can be raised for safety.
+return pts;
+}
 function fitPolygon(pts, box, pad = POLY_PAD_X, padY = POLY_PAD_Y) {
-  const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
-  const minX = Math.min(...xs), maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
-  const w = box.x1 - box.x0 - 2 * pad, h = box.y1 - box.y0 - 2 * padY;
-  const spanX = maxX - minX, spanY = maxY - minY;
-  const kx = spanX > 1e-9 ? w / spanX : Infinity;
-  const ky = spanY > 1e-9 ? h / spanY : Infinity;
-  const k = Math.min(kx, ky, 1.5);                    // never blow a tiny polygon up past 1.5 units/lb
-  const scale = Number.isFinite(k) && k > 0 ? k : 1;
-  const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
-  const mx = (box.x0 + box.x1) / 2, my = (box.y0 + box.y1) / 2;
-  return {
-    scale,
-    map: (p) => ({ x: mx + (p.x - cx) * scale, y: my - (p.y - cy) * scale })
-  };
+const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+const minX = Math.min(...xs), maxX = Math.max(...xs);
+const minY = Math.min(...ys), maxY = Math.max(...ys);
+const w = box.x1 - box.x0 - 2 * pad, h = box.y1 - box.y0 - 2 * padY;
+const spanX = maxX - minX, spanY = maxY - minY;
+const kx = spanX > 1e-9 ? w / spanX : Infinity;
+const ky = spanY > 1e-9 ? h / spanY : Infinity;
+const k = Math.min(kx, ky, 1.5);                    // never blow a tiny polygon up past 1.5 units/lb
+const scale = Number.isFinite(k) && k > 0 ? k : 1;
+const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+const mx = (box.x0 + box.x1) / 2, my = (box.y0 + box.y1) / 2;
+return {
+scale,
+map: (p) => ({ x: mx + (p.x - cx) * scale, y: my - (p.y - cy) * scale })
+};
 }
-
-// Where a force's label goes: past the arrow's tip, along the arrow, so it never sits on the shaft.
-// A NEARLY HORIZONTAL arrow gets its label lifted clear instead of nudged along the line -- in the two
-// beam panels such an arrow runs down the beam, and a label on the line lands on the beam itself.
-// `anchor` keeps the text inside the figure by reading the direction, not the position.
 const LABEL_LIFT = 24;   // measured: a label's box reaches about 20 units above its baseline and 10 below
-
 function labelSpot(tail, tip, out = 17) {
-  const dx = tip.x - tail.x, dy = tip.y - tail.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const ux = dx / len, uy = dy / len;
-  const lift = Math.abs(uy) < 0.35 ? -LABEL_LIFT
-    : uy > 0 ? TEXT * 0.85
-    : -TEXT * 0.3;
-  return {
-    x: tip.x + ux * out,
-    y: tip.y + uy * out + lift,
-    anchor: ux > 0.25 ? 'start' : ux < -0.25 ? 'end' : 'middle'
-  };
+const dx = tip.x - tail.x, dy = tip.y - tail.y;
+const len = Math.hypot(dx, dy) || 1;
+const ux = dx / len, uy = dy / len;
+const lift = Math.abs(uy) < 0.35 ? -LABEL_LIFT
+: uy > 0 ? TEXT * 0.85
+: -TEXT * 0.3;
+return {
+x: tip.x + ux * out,
+y: tip.y + uy * out + lift,
+anchor: ux > 0.25 ? 'start' : ux < -0.25 ? 'end' : 'middle'
+};
 }
-
-// Where a polygon side's label goes: beside the middle of its own side, on the far side from the
-// polygon's centre. A FLAT polygon (every force along one line) has its centre ON every side, so
-// there is no far side: the sides then take turns above and below one shared perpendicular, which is
-// what keeps the labels of a collapsed polygon apart.
 function polygonLabelSpots(sides, out = POLY_LABEL_OUT) {
-  if (!sides.length) return [];
-  const cx = sides.reduce((a, s) => a + (s.from.x + s.to.x) / 2, 0) / sides.length;
-  const cy = sides.reduce((a, s) => a + (s.from.y + s.to.y) / 2, 0) / sides.length;
-  const perpOf = (s) => {
-    const dx = s.to.x - s.from.x, dy = s.to.y - s.from.y;
-    const n = Math.hypot(dx, dy) || 1;
-    return { x: -dy / n, y: dx / n };
-  };
-  const mids = sides.map(s => ({ x: (s.from.x + s.to.x) / 2, y: (s.from.y + s.to.y) / 2 }));
-  const perps = sides.map(perpOf);
-  const outward = sides.map((s, i) => (mids[i].x - cx) * perps[i].x + (mids[i].y - cy) * perps[i].y);
-  const flat = outward.every(v => Math.abs(v) < 1);
-  return sides.map((s, i) => {
-    const p = flat ? perps[0] : perps[i];
-    const sign = flat ? (i % 2 ? -1 : 1) : Math.sign(outward[i]) || 1;
-    const x = mids[i].x + p.x * sign * out;
-    const y = mids[i].y + p.y * sign * out + TEXT * 0.34;
-    return { x, y, anchor: p.x * sign < -0.25 ? 'end' : p.x * sign > 0.25 ? 'start' : 'middle' };
-  });
+if (!sides.length) return [];
+const cx = sides.reduce((a, s) => a + (s.from.x + s.to.x) / 2, 0) / sides.length;
+const cy = sides.reduce((a, s) => a + (s.from.y + s.to.y) / 2, 0) / sides.length;
+const perpOf = (s) => {
+const dx = s.to.x - s.from.x, dy = s.to.y - s.from.y;
+const n = Math.hypot(dx, dy) || 1;
+return { x: -dy / n, y: dx / n };
+};
+const mids = sides.map(s => ({ x: (s.from.x + s.to.x) / 2, y: (s.from.y + s.to.y) / 2 }));
+const perps = sides.map(perpOf);
+const outward = sides.map((s, i) => (mids[i].x - cx) * perps[i].x + (mids[i].y - cy) * perps[i].y);
+const flat = outward.every(v => Math.abs(v) < 1);
+return sides.map((s, i) => {
+const p = flat ? perps[0] : perps[i];
+const sign = flat ? (i % 2 ? -1 : 1) : Math.sign(outward[i]) || 1;
+const x = mids[i].x + p.x * sign * out;
+const y = mids[i].y + p.y * sign * out + TEXT * 0.34;
+return { x, y, anchor: p.x * sign < -0.25 ? 'end' : p.x * sign > 0.25 ? 'start' : 'middle' };
+});
 }
-
-// ---------------------------------------------------------------------------------------------
-// Boxes: how a label is measured, and how one is moved off whatever it lands on.
-//
-// Everything that checks a figure for collisions -- the browser harness, and a reader's eye -- works
-// on rectangles, so this file places labels by rectangle too. The constants are MEASURED in Chromium
-// at TEXT units with the figure's own font, not guessed, and taken from the WIDEST label this figure
-// prints rather than an average: digits are wider than letters and a force label is mostly digits.
-// ---------------------------------------------------------------------------------------------
 const LABEL_CHAR_W = 11.4;
 const LABEL_ABOVE = 21;
 const LABEL_BELOW = 11;
 const PLACE_PAD = 1.5;        // clear space demanded between a label and a drawn shape
-// Two labels need a real gap, not merely not to touch. At 1.5 units apart two force labels are
-// measurably clear of each other and read as one string; this is the space between two words.
 const PLACE_TEXT_GAP = 11;
 const PLACE_PASSES = 8;
-// How far a label may be moved from where its arrow put it, by default. Raised from the previous
-// simulation's 110 by a measured amount, not a guess: in the free-body diagram the two cable labels
-// want the same place whenever the force at D is near straight down (their arrow tips are 130 units
-// apart and each label is about 115 wide), and the captions above leave no room to separate them
-// vertically. Swept over every state of the grid, 110 left ten such states with the two labels
-// touching and 140 left none; the force polygon, whose panel is the smallest, needs 160 to clear its
-// own last state. The solver still moves each label as little as it can, so nothing travels this far
-// unless it must, and the panel checks in test/layout.test.js are what say whether it does.
 const PLACE_MAX_SHIFT = 160;
-
-// A point's name (A, B, C, D, E) may be nudged, but only a little: further than this and it no longer
-// reads as the name of that point. Items carry their own cap through `maxShift`.
 const PLACE_NAME_SHIFT = 30;
-
-// The force polygon's margins inside its panel (see fitPolygon), and how far outside its own side a
-// side's label starts. All three are swept over every state of the grid: 20 units of standoff leaves
-// no state with two labels touching, while 24 leaves three and 28 leaves eleven -- a label set
-// further out from a short side lands further round the polygon, not further from its neighbours.
 const POLY_PAD_X = 74;
 const POLY_PAD_Y = 30;
 const POLY_LABEL_OUT = 20;
-
-// A label's box, estimated from its character count. The three constants are measured at TEXT units,
-// so a label drawn SMALLER is scaled down with it: a caption at SUB is 16/21 of the width and the
-// height of one at TEXT. Without that scaling the solver believed a 69-character caption at SUB was
-// 787 units wide -- wider than its own panel -- and so believed the whole band across the top of the
-// free-body diagram was occupied. It then had nowhere to move the two cable labels to, left them
-// sitting on each other, and the browser harness said so.
 function labelBox(spot, chars, size = TEXT) {
-  const k = size / TEXT;
-  const w = chars * LABEL_CHAR_W * k;
-  const x0 = spot.anchor === 'end' ? spot.x - w : spot.anchor === 'middle' ? spot.x - w / 2 : spot.x;
-  return { x0, x1: x0 + w, y0: spot.y - LABEL_ABOVE * k, y1: spot.y + LABEL_BELOW * k };
+const k = size / TEXT;
+const w = chars * LABEL_CHAR_W * k;
+const x0 = spot.anchor === 'end' ? spot.x - w : spot.anchor === 'middle' ? spot.x - w / 2 : spot.x;
+return { x0, x1: x0 + w, y0: spot.y - LABEL_ABOVE * k, y1: spot.y + LABEL_BELOW * k };
 }
-
-// True when the two boxes are closer than `pad` apart. EXACTLY `pad` apart counts as clear: the
-// placement solver moves a label to precisely that distance, and without the epsilon the arithmetic
-// that put it there and the test that checks it disagree by a last bit, so the move never takes.
 const BOX_EPS = 1e-6;
-
 function boxesHit(a, b, pad = PLACE_PAD) {
-  return Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > -pad + BOX_EPS &&
-         Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > -pad + BOX_EPS;
+return Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > -pad + BOX_EPS &&
+Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > -pad + BOX_EPS;
 }
-
 const shift = (box, dx, dy) => ({ x0: box.x0 + dx, x1: box.x1 + dx, y0: box.y0 + dy, y1: box.y1 + dy });
-
-// Keeps a box inside `bounds` by sliding it, and says how far it had to slide.
 function insideShift(box, bounds) {
-  let dx = 0, dy = 0;
-  if (box.x0 < bounds.x0) dx = bounds.x0 - box.x0;
-  else if (box.x1 > bounds.x1) dx = bounds.x1 - box.x1;
-  if (box.y0 < bounds.y0) dy = bounds.y0 - box.y0;
-  else if (box.y1 > bounds.y1) dy = bounds.y1 - box.y1;
-  return { dx, dy };
+let dx = 0, dy = 0;
+if (box.x0 < bounds.x0) dx = bounds.x0 - box.x0;
+else if (box.x1 > bounds.x1) dx = bounds.x1 - box.x1;
+if (box.y0 < bounds.y0) dy = bounds.y0 - box.y0;
+else if (box.y1 > bounds.y1) dy = bounds.y1 - box.y1;
+return { dx, dy };
 }
-
-// Places labels so that none sits on another, on an obstacle, or outside its panel.
-//
-//   items      [{ spot, chars, pinned }] -- a pinned item never moves but still blocks the others
-//   obstacles  [box] -- the beam, the cable, the dimension lines, every piece of every arrow
-//   bounds     the panel's box; a label is kept inside it
-//
-// For each movable label it tries the four smallest escapes (up, down, left, right past whatever it
-// overlaps), keeps the one that costs least movement from where the arrow put it, and repeats. A label
-// that cannot be freed stays at its best position rather than flying off: the figure is then still
-// readable, and the browser harness says so. Pure and deterministic.
 function placeLabels(items, obstacles = [], bounds = null) {
-  const boxes = items.map(it => labelBox(it.spot, it.chars, it.size));
-  const home = boxes.map(b => ({ ...b }));
-  const blockers = (i) => [
-    ...obstacles.map(b => ({ b, hard: true, gap: PLACE_PAD })),
-    ...boxes.map((b, j) => ({ b, hard: !!items[j].pinned, gap: PLACE_TEXT_GAP, self: j === i })).filter(x => !x.self)
-  ];
-
-  // Landing on something that cannot move is worse than landing on another label, which the next pass
-  // can still push aside. Without that difference a label with no clear spot stays where it is -- on
-  // the beam -- because every escape looks exactly as bad.
-  //
-  // Leaving the panel costs far more than any number of overlaps: an arrow is drawn in many short
-  // pieces, so brushing one arrow already counts several times over, and a smaller penalty here let a
-  // label sit half off the figure rather than touch a long arrow. Off the edge it is simply cut off.
-  const HARD = 3, SOFT = 1, OUT = 1000;
-
-  const cost = (i, b) => {
-    let n = 0;
-    for (const o of blockers(i)) if (boxesHit(b, o.b, o.gap)) n += o.hard ? HARD : SOFT;
-    if (bounds) { const s = insideShift(b, bounds); if (s.dx || s.dy) n += OUT; }
-    return n;
-  };
-  const travel = (i, b) => Math.hypot(b.x0 - home[i].x0, b.y0 - home[i].y0);
-  const capOf = (i) => (items[i].maxShift === undefined ? PLACE_MAX_SHIFT : items[i].maxShift);
-
-  // The four ways out of one blocker: just above it, just below it, just left of it, just right of it,
-  // each clearing it by the gap that blocker demands.
-  const escapes = (box, o, gap) => [
-    { dx: 0, dy: o.y0 - gap - box.y1 },
-    { dx: 0, dy: o.y1 + gap - box.y0 },
-    { dx: o.x0 - gap - box.x1, dy: 0 },
-    { dx: o.x1 + gap - box.x0, dy: 0 }
-  ];
-
-  for (let pass = 0; pass < PLACE_PASSES; pass++) {
-    let moved = false;
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].pinned) continue;
-      if (cost(i, boxes[i]) === 0) continue;
-      let best = boxes[i], bestCost = cost(i, boxes[i]), bestTravel = travel(i, boxes[i]);
-      // `far` lets one kind of move ignore the travel cap: sliding back onto the panel. A label off the
-      // edge is cut off and unreadable, which is worse than a label that has wandered from its arrow.
-      const consider = (cand0, far = false) => {
-        let cand = cand0;
-        if (bounds) { const s = insideShift(cand, bounds); cand = shift(cand, s.dx, s.dy); }
-        if (!far && travel(i, cand) > capOf(i)) return null;
-        const c = cost(i, cand), tr = travel(i, cand);
-        if (c < bestCost || (c === bestCost && tr < bestTravel - 1e-9)) { best = cand; bestCost = c; bestTravel = tr; }
-        return cand;
-      };
-      // One step out of each blocker, and -- because escaping one thing often lands on the next -- a
-      // second step out of whatever that first step ran into. Without the second step a label with a
-      // row of obstacles beside it never moves: every single step looks exactly as bad as staying.
-      for (const first of blockers(i)) {
-        if (!boxesHit(boxes[i], first.b, first.gap)) continue;
-        for (const t of escapes(boxes[i], first.b, first.gap)) {
-          const cand = consider(shift(boxes[i], t.dx, t.dy));
-          if (!cand || cost(i, cand) === 0) continue;
-          for (const second of blockers(i)) {
-            if (!boxesHit(cand, second.b, second.gap)) continue;
-            for (const u of escapes(cand, second.b, second.gap)) consider(shift(cand, u.dx, u.dy));
-          }
-        }
-      }
-      // sliding back inside the panel is always worth trying, even when nothing is in the way
-      if (bounds) {
-        const s0 = insideShift(boxes[i], bounds);
-        if (s0.dx || s0.dy) consider(shift(boxes[i], s0.dx, s0.dy), true);
-      }
-      if (best !== boxes[i]) { boxes[i] = best; moved = true; }
-    }
-    if (!moved) break;
-  }
-
-  return items.map((it, i) => ({
-    ...it.spot,
-    x: it.spot.x + (boxes[i].x0 - home[i].x0),
-    y: it.spot.y + (boxes[i].y0 - home[i].y0)
-  }));
+const boxes = items.map(it => labelBox(it.spot, it.chars, it.size));
+const home = boxes.map(b => ({ ...b }));
+const blockers = (i) => [
+...obstacles.map(b => ({ b, hard: true, gap: PLACE_PAD })),
+...boxes.map((b, j) => ({ b, hard: !!items[j].pinned, gap: PLACE_TEXT_GAP, self: j === i })).filter(x => !x.self)
+];
+const HARD = 3, SOFT = 1, OUT = 1000;
+const cost = (i, b) => {
+let n = 0;
+for (const o of blockers(i)) if (boxesHit(b, o.b, o.gap)) n += o.hard ? HARD : SOFT;
+if (bounds) { const s = insideShift(b, bounds); if (s.dx || s.dy) n += OUT; }
+return n;
+};
+const travel = (i, b) => Math.hypot(b.x0 - home[i].x0, b.y0 - home[i].y0);
+const capOf = (i) => (items[i].maxShift === undefined ? PLACE_MAX_SHIFT : items[i].maxShift);
+const escapes = (box, o, gap) => [
+{ dx: 0, dy: o.y0 - gap - box.y1 },
+{ dx: 0, dy: o.y1 + gap - box.y0 },
+{ dx: o.x0 - gap - box.x1, dy: 0 },
+{ dx: o.x1 + gap - box.x0, dy: 0 }
+];
+for (let pass = 0; pass < PLACE_PASSES; pass++) {
+let moved = false;
+for (let i = 0; i < items.length; i++) {
+if (items[i].pinned) continue;
+if (cost(i, boxes[i]) === 0) continue;
+let best = boxes[i], bestCost = cost(i, boxes[i]), bestTravel = travel(i, boxes[i]);
+const consider = (cand0, far = false) => {
+let cand = cand0;
+if (bounds) { const s = insideShift(cand, bounds); cand = shift(cand, s.dx, s.dy); }
+if (!far && travel(i, cand) > capOf(i)) return null;
+const c = cost(i, cand), tr = travel(i, cand);
+if (c < bestCost || (c === bestCost && tr < bestTravel - 1e-9)) { best = cand; bestCost = c; bestTravel = tr; }
+return cand;
+};
+for (const first of blockers(i)) {
+if (!boxesHit(boxes[i], first.b, first.gap)) continue;
+for (const t of escapes(boxes[i], first.b, first.gap)) {
+const cand = consider(shift(boxes[i], t.dx, t.dy));
+if (!cand || cost(i, cand) === 0) continue;
+for (const second of blockers(i)) {
+if (!boxesHit(cand, second.b, second.gap)) continue;
+for (const u of escapes(cand, second.b, second.gap)) consider(shift(cand, u.dx, u.dy));
 }
-
-// A dashed segment, as the separate short dashes it is really drawn from. The last dash is cut to the
-// end of the segment rather than overrunning it.
+}
+}
+if (bounds) {
+const s0 = insideShift(boxes[i], bounds);
+if (s0.dx || s0.dy) consider(shift(boxes[i], s0.dx, s0.dy), true);
+}
+if (best !== boxes[i]) { boxes[i] = best; moved = true; }
+}
+if (!moved) break;
+}
+return items.map((it, i) => ({
+...it.spot,
+x: it.spot.x + (boxes[i].x0 - home[i].x0),
+y: it.spot.y + (boxes[i].y0 - home[i].y0)
+}));
+}
 const DASH_ON = 9;
 const DASH_OFF = 7;
-
 function dashes(from, to, on = DASH_ON, off = DASH_OFF) {
-  const dx = to.x - from.x, dy = to.y - from.y;
-  const len = Math.hypot(dx, dy);
-  if (!(len > 0.5)) return [];
-  const ux = dx / len, uy = dy / len;
-  const out = [];
-  for (let a = 0; a < len; a += on + off) {
-    const b = Math.min(a + on, len);
-    out.push({ x1: from.x + ux * a, y1: from.y + uy * a, x2: from.x + ux * b, y2: from.y + uy * b });
-  }
-  return out;
+const dx = to.x - from.x, dy = to.y - from.y;
+const len = Math.hypot(dx, dy);
+if (!(len > 0.5)) return [];
+const ux = dx / len, uy = dy / len;
+const out = [];
+for (let a = 0; a < len; a += on + off) {
+const b = Math.min(a + on, len);
+out.push({ x1: from.x + ux * a, y1: from.y + uy * a, x2: from.x + ux * b, y2: from.y + uy * b });
 }
-
-// The pieces an arrow is drawn from, as pure geometry, so the figure and the collision boxes can never
-// disagree: svg.js draws exactly this. Returns the shaft pieces, the head's three corners, and the box
-// of every piece.
+return out;
+}
 function arrowGeometry(from, to, width, headMax) {
-  const dx = to.x - from.x, dy = to.y - from.y;
-  const len = Math.hypot(dx, dy);
-  if (len < 1e-6) return { pieces: [], head: null, boxes: [] };
-  const ux = dx / len, uy = dy / len;
-  const head = Math.min(headMax, len * 0.55);
-  const bx = to.x - ux * head, by = to.y - uy * head;
-  const half = width * 1.5 + 2.2;
-  const shaftLen = len - head;
-  const n = shaftPieces(len, head);
-  const pieces = [];
-  for (let i = 0; i < n; i++) {
-    pieces.push({
-      x1: from.x + ux * shaftLen * (i / n), y1: from.y + uy * shaftLen * (i / n),
-      x2: from.x + ux * shaftLen * ((i + 1) / n), y2: from.y + uy * shaftLen * ((i + 1) / n)
-    });
-  }
-  const corners = [
-    { x: bx - uy * half, y: by + ux * half },
-    { x: to.x, y: to.y },
-    { x: bx + uy * half, y: by - ux * half }
-  ];
-  const boxes = pieces.map(p => ({ x0: Math.min(p.x1, p.x2), x1: Math.max(p.x1, p.x2), y0: Math.min(p.y1, p.y2), y1: Math.max(p.y1, p.y2) }));
-  boxes.push({
-    x0: Math.min(...corners.map(c => c.x)), x1: Math.max(...corners.map(c => c.x)),
-    y0: Math.min(...corners.map(c => c.y)), y1: Math.max(...corners.map(c => c.y))
-  });
-  return { pieces, head: corners, boxes };
+const dx = to.x - from.x, dy = to.y - from.y;
+const len = Math.hypot(dx, dy);
+if (len < 1e-6) return { pieces: [], head: null, boxes: [] };
+const ux = dx / len, uy = dy / len;
+const head = Math.min(headMax, len * 0.55);
+const bx = to.x - ux * head, by = to.y - uy * head;
+const half = width * 1.5 + 2.2;
+const shaftLen = len - head;
+const n = shaftPieces(len, head);
+const pieces = [];
+for (let i = 0; i < n; i++) {
+pieces.push({
+x1: from.x + ux * shaftLen * (i / n), y1: from.y + uy * shaftLen * (i / n),
+x2: from.x + ux * shaftLen * ((i + 1) / n), y2: from.y + uy * shaftLen * ((i + 1) / n)
+});
 }
-
-// How long each piece of a shaft is. The shaft is cut up because every collision check works on
-// bounding rectangles, and one diagonal line claims its whole rectangle: see svg.js.
+const corners = [
+{ x: bx - uy * half, y: by + ux * half },
+{ x: to.x, y: to.y },
+{ x: bx + uy * half, y: by - ux * half }
+];
+const boxes = pieces.map(p => ({ x0: Math.min(p.x1, p.x2), x1: Math.max(p.x1, p.x2), y0: Math.min(p.y1, p.y2), y1: Math.max(p.y1, p.y2) }));
+boxes.push({
+x0: Math.min(...corners.map(c => c.x)), x1: Math.max(...corners.map(c => c.x)),
+y0: Math.min(...corners.map(c => c.y)), y1: Math.max(...corners.map(c => c.y))
+});
+return { pieces, head: corners, boxes };
+}
 const SHAFT_SEG = 14;
-
 function shaftPieces(len, head) {
-  return Math.max(1, Math.ceil((len - head) / SHAFT_SEG));
+return Math.max(1, Math.ceil((len - head) / SHAFT_SEG));
 }
-
 function dist(a, b) {
-  return Math.hypot(a.x - b.x, a.y - b.y);
+return Math.hypot(a.x - b.x, a.y - b.y);
 }
-
-
 // ===== svg.js =====
-
-
-
 const NS = 'http://www.w3.org/2000/svg';
-
-// One palette for the whole app. It lives here because build.js concatenates every module into a single
-// scope, so a top-level `const COLORS` in two files would collide and fail the build. The .c-* classes in
-// styles.css repeat these values for the HTML side.
 const COLORS = {
-  load:   '#c53030',  // the force at D, the one thing the student sets
-  cable:  '#b7791f',  // BOTH runs of cable: one cable, one tension, so one colour
-  pin:    '#2b6cb0',  // the pin's reaction at A
-  beam:   '#bee3f8',
-  wall:   '#cbd5e0',
-  ink:    '#111827',
-  dim:    '#4a5568',   // dimension lines and their text
-  faint:  '#9aa1ab'
+load:   '#c53030',  // the force at D, the one thing the student sets
+cable:  '#b7791f',  // BOTH runs of cable: one cable, one tension, so one colour
+pin:    '#2b6cb0',  // the pin's reaction at A
+beam:   '#bee3f8',
+wall:   '#cbd5e0',
+ink:    '#111827',
+dim:    '#4a5568',   // dimension lines and their text
+faint:  '#9aa1ab'
 };
-
 function el(name, attrs = {}, parent = null) {
-  const node = document.createElementNS(NS, name);
-  for (const k in attrs) {
-    const v = attrs[k];
-    if (v !== null && v !== undefined) node.setAttribute(k, String(v));
-  }
-  if (parent) parent.appendChild(node);
-  return node;
+const node = document.createElementNS(NS, name);
+for (const k in attrs) {
+const v = attrs[k];
+if (v !== null && v !== undefined) node.setAttribute(k, String(v));
 }
-
+if (parent) parent.appendChild(node);
+return node;
+}
 function clear(node) {
-  while (node.firstChild) node.removeChild(node.firstChild);
+while (node.firstChild) node.removeChild(node.firstChild);
 }
-
-// How far a subscript drops, as a fraction of the base size. Matched to SUB in layout.js by eye in the
-// browser, not derived: the figure is checked at both viewport budgets.
 const SUB_DROP = 0.3;
-
-// The vector arrow over a symbol is DRAWN, not typed. U+20D7 (combining right arrow above) falls back to
-// a stack of bars in system-ui on macOS -- it was tried in the browser and is unusable -- and a Unicode
-// subscript glyph is too small for the 12 px floor. So a segment marked `vec: true` gets a one-glyph
-// arrow drawn over it: measured at render time with getComputedTextLength, which only a real browser
-// has, so in the stub DOM of the tests the label is simply drawn without its bar.
-//
-// The bar is a SIBLING of the text with class `vecbar` and NOT class `g`, so the browser harness does
-// not measure it as a graphic of its own: it belongs to the label it sits on, always overlaps that
-// label's box by construction, and would otherwise be reported as a text-over-graphic violation on
-// every single label.
 const VEC_BAR_Y = 0.80;          // how far above the baseline the bar sits, in ems
 const VEC_F_EM = 0.5538;         // advance width of 'F' in system-ui at weight 600, measured in Chromium
-
-// A label, as SEGMENTS: [{ t: 'F' }, { t: 'B', sub: true }, { t: ' 50 N' }]. A subscript is a
-// real lowered tspan at its own size, never an ASCII underscore and never a Unicode subscript glyph
-// (those draw at about 0.6 em, which falls under the 12 px floor at this figure's scale).
-//
-// A plain string is allowed and is the common case. A node with tspans has an empty textContent, so
-// segPlain() (format.js) is the one way to read a label back as text: the unit lint and the scene tests use it.
-
-
-// Draws the arrow over the first glyph of `node`, whose text begins at the base letter. Returns the path,
-// or null when the environment cannot measure text.
 function vectorBar(parent, node, x, y, size, color) {
-  if (typeof node.getComputedTextLength !== 'function') return null;
-  const total = node.getComputedTextLength();
-  const anchor = node.getAttribute('text-anchor') || 'start';
-  const x0 = anchor === 'end' ? x - total : anchor === 'middle' ? x - total / 2 : x;
-  const by = y - size * VEC_BAR_Y;
-  const x1 = x0 + size * VEC_F_EM + 1.5;
-  const h = size * 0.16;
-  const d = `M${x0 - 0.5} ${by} L${x1 - h} ${by} M${x1 - h} ${by - h * 0.75} L${x1} ${by} L${x1 - h} ${by + h * 0.75}`;
-  el('path', { class: 'vecbar halo', d, stroke: '#ffffff', 'stroke-width': size * 0.22, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, parent);
-  return el('path', { class: 'vecbar', d, stroke: color, 'stroke-width': size * 0.072, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, parent);
+if (typeof node.getComputedTextLength !== 'function') return null;
+const total = node.getComputedTextLength();
+const anchor = node.getAttribute('text-anchor') || 'start';
+const x0 = anchor === 'end' ? x - total : anchor === 'middle' ? x - total / 2 : x;
+const by = y - size * VEC_BAR_Y;
+const x1 = x0 + size * VEC_F_EM + 1.5;
+const h = size * 0.16;
+const d = `M${x0 - 0.5} ${by} L${x1 - h} ${by} M${x1 - h} ${by - h * 0.75} L${x1} ${by} L${x1 - h} ${by + h * 0.75}`;
+el('path', { class: 'vecbar halo', d, stroke: '#ffffff', 'stroke-width': size * 0.22, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, parent);
+return el('path', { class: 'vecbar', d, stroke: color, 'stroke-width': size * 0.072, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, parent);
 }
-
 function text(parent, x, y, segs, opts = {}) {
-  const size = opts.size || 21;
-  const node = el('text', {
-    x, y,
-    class: opts.class || 't',
-    'font-size': size,
-    'font-family': 'system-ui, -apple-system, sans-serif',
-    'font-style': opts.italic ? 'italic' : null,
-    fill: opts.fill || COLORS.ink,
-    'text-anchor': opts.anchor || 'start',
-    'font-weight': opts.weight || 400,
-    'paint-order': 'stroke',
-    stroke: '#ffffff',
-    'stroke-width': opts.halo === false ? 0 : 4,
-    'stroke-linejoin': 'round'
-  }, parent);
-  const list = typeof segs === 'string' ? [{ t: segs }] : segs;
-  if (list.length === 1 && !list[0].sub && !list[0].vec) {
-    node.textContent = list[0].t;
-    return node;
-  }
-  let dy = 0;                                   // where the baseline currently sits, in units
-  for (const s of list) {
-    const want = s.sub ? size * SUB_DROP : 0;
-    // `sb` marks a subscript. It is what tells a reader of the DOM -- the unit lint above all --
-    // that a digit in here is part of a name (the 1 of M₁), not a quantity with a missing unit.
-    const span = el('tspan', { class: s.sub ? 'sb' : null, dy: Number((want - dy).toFixed(3)), 'font-size': s.sub ? (opts.sub || 16) : size }, node);
-    span.textContent = s.t;
-    dy = want;
-  }
-  if (list[0].vec) vectorBar(parent, node, x, y, size, opts.fill || COLORS.ink);
-  return node;
+const size = opts.size || 21;
+const node = el('text', {
+x, y,
+class: opts.class || 't',
+'font-size': size,
+'font-family': 'system-ui, -apple-system, sans-serif',
+'font-style': opts.italic ? 'italic' : null,
+fill: opts.fill || COLORS.ink,
+'text-anchor': opts.anchor || 'start',
+'font-weight': opts.weight || 400,
+'paint-order': 'stroke',
+stroke: '#ffffff',
+'stroke-width': opts.halo === false ? 0 : 4,
+'stroke-linejoin': 'round'
+}, parent);
+const list = typeof segs === 'string' ? [{ t: segs }] : segs;
+if (list.length === 1 && !list[0].sub && !list[0].vec) {
+node.textContent = list[0].t;
+return node;
 }
-
-// Draws an arrow from `from` to `to` as sibling pieces of `parent`, each with class `g arrow <cls>`:
-// the shaft in short collinear lines, then the head, whose tip sits exactly on `to`. Returns the boxes
-// the pieces occupy, so the caller can keep labels off them.
-//
-// AN ARROW IS DRAWN AS SEPARATE TOP-LEVEL PIECES, not as one group, and this is why. Every overlap
-// check -- the browser harness's and the eye's -- works on BOUNDING RECTANGLES. A single diagonal line
-// from one corner of a square to the other claims the whole square, so a label in the clear space
-// beside a diagonal arrow is measured as sitting on it, and in a figure of radiating arrows almost
-// every label is. Cut into short pieces, each piece's rectangle hugs the line. The pieces must be
-// TOP-LEVEL to be measured one by one: the harness takes the box of the OUTERMOST element carrying
-// class `g`, so pieces inside a `g.g` group would be invisible to it and the group's whole rectangle
-// would be measured instead. The pieces touch, so what is drawn is exactly the same arrow.
-//
-// What this gives up: the harness's rule 4 (an arrow must not cover a `.pc` joint circle) looks for a
-// group whose first child is a line, and finds none. test/scene.test.js checks that instead, over every
-// state of the grid rather than the harness's 38, which is the stronger check.
-//
-// The geometry itself lives in layout.js, so the boxes the labels avoid are the boxes really drawn.
+let dy = 0;                                   // where the baseline currently sits, in units
+for (const s of list) {
+const want = s.sub ? size * SUB_DROP : 0;
+const span = el('tspan', { class: s.sub ? 'sb' : null, dy: Number((want - dy).toFixed(3)), 'font-size': s.sub ? (opts.sub || 16) : size }, node);
+span.textContent = s.t;
+dy = want;
+}
+if (list[0].vec) vectorBar(parent, node, x, y, size, opts.fill || COLORS.ink);
+return node;
+}
 function arrow(parent, from, to, color, width, cls, headMax = 13) {
-  const geo = arrowGeometry(from, to, width, headMax);
-  if (!geo.head) return geo.boxes;
-  for (const p of geo.pieces) {
-    el('line', { class: `g arrow shaft ${cls}`, x1: p.x1, y1: p.y1, x2: p.x2, y2: p.y2,
-      stroke: color, 'stroke-width': width, 'stroke-linecap': 'butt' }, parent);
-  }
-  const c = geo.head;
-  el('path', { class: `g arrow head ${cls}`, d: `M${c[0].x} ${c[0].y} L${c[1].x} ${c[1].y} L${c[2].x} ${c[2].y} Z`, fill: color }, parent);
-  return geo.boxes;
+const geo = arrowGeometry(from, to, width, headMax);
+if (!geo.head) return geo.boxes;
+for (const p of geo.pieces) {
+el('line', { class: `g arrow shaft ${cls}`, x1: p.x1, y1: p.y1, x2: p.x2, y2: p.y2,
+stroke: color, 'stroke-width': width, 'stroke-linecap': 'butt' }, parent);
 }
-
-// Diagonal hatching along a line, for a wall or the ground under a support.
+const c = geo.head;
+el('path', { class: `g arrow head ${cls}`, d: `M${c[0].x} ${c[0].y} L${c[1].x} ${c[1].y} L${c[2].x} ${c[2].y} Z`, fill: color }, parent);
+return geo.boxes;
+}
 function hatch(parent, from, to, nx, ny, n, len, color) {
-  const g = el('g', { class: 'g hatch' }, parent);
-  for (let i = 0; i <= n; i++) {
-    const t = i / n;
-    const px = from.x + (to.x - from.x) * t, py = from.y + (to.y - from.y) * t;
-    el('line', { x1: px, y1: py, x2: px + nx * len, y2: py + ny * len, stroke: color, 'stroke-width': 2 }, g);
-  }
-  return g;
+const g = el('g', { class: 'g hatch' }, parent);
+for (let i = 0; i <= n; i++) {
+const t = i / n;
+const px = from.x + (to.x - from.x) * t, py = from.y + (to.y - from.y) * t;
+el('line', { x1: px, y1: py, x2: px + nx * len, y2: py + ny * len, stroke: color, 'stroke-width': 2 }, g);
 }
-
+return g;
+}
 // ===== state.js =====
-
-
 const DEFAULTS = fieldDefaults();
-
-// Pure store: no DOM. Only the inputs in FIELDS are stored; everything else is derived (physics.js), never stored,
-// so it can never disagree. Subscribers get a copy of the new state, and only when a stored value changed.
 function createState() {
-  let cur = { ...DEFAULTS };
-  const subs = new Set();
-
-  function commit(next) {
-    if (FIELDS.every(f => next[f.key] === cur[f.key])) return;
-    cur = next;
-    const snapshot = { ...cur };
-    for (const fn of [...subs]) fn(snapshot);
-  }
-
-  return {
-    getState: () => ({ ...cur }),
-    // One field, snapped as its slider snaps (the keyboard jump only for a field with `snap`).
-    setField: (key, raw, viaKeyboard) => {
-      const f = fieldByKey(key);
-      commit({ ...cur, [key]: fieldNext(f, cur[key], raw, viaKeyboard) });
-    },
-    // A batch (presets): each field is snapped, missing fields are kept, one notification.
-    set: (p = {}) => commit(Object.fromEntries(
-      FIELDS.map(f => [f.key, p[f.key] === undefined ? cur[f.key] : fieldSnap(f, p[f.key])]))),
-    subscribe: (fn) => { subs.add(fn); return () => { subs.delete(fn); }; },
-    reset: () => commit({ ...DEFAULTS })
-  };
+let cur = { ...DEFAULTS };
+const subs = new Set();
+function commit(next) {
+if (FIELDS.every(f => next[f.key] === cur[f.key])) return;
+cur = next;
+const snapshot = { ...cur };
+for (const fn of [...subs]) fn(snapshot);
 }
-
+return {
+getState: () => ({ ...cur }),
+setField: (key, raw, viaKeyboard) => {
+const f = fieldByKey(key);
+commit({ ...cur, [key]: fieldNext(f, cur[key], raw, viaKeyboard) });
+},
+set: (p = {}) => commit(Object.fromEntries(
+FIELDS.map(f => [f.key, p[f.key] === undefined ? cur[f.key] : fieldSnap(f, p[f.key])]))),
+subscribe: (fn) => { subs.add(fn); return () => { subs.delete(fn); }; },
+reset: () => commit({ ...DEFAULTS })
+};
+}
 // ===== presets.js =====
-
-
-// Optional URL parameters that preset a setup, one per input in FIELDS, by its key:   ?f=50&dir=215
-// Presets are configuration read once at load, held OUTSIDE the state. Every number goes through the same
-// snapping as its slider (fieldSnap) and a change you could see is reported.
-//
-// The note names each input by its LABEL ("Load magnitude"), not by its symbol and not by its URL key.
-// A symbol with a subscript (F_B) cannot be written into a plain-text node as a real subscript, and an
-// ASCII underscore must never reach the screen; a label has neither problem and reads better in a
-// sentence. The whole note goes into the page through textContent, so no URL text can become markup.
-
 const PRESET_NUMBER = /^[+-]?(\d+(\.\d*)?|\.\d+)$/;
-// Characters of a rejected value echoed back. Kept short on purpose: the note sits in the reading
-// panel, and the page has to fit a Canvas iframe without scrolling, so a long echo that wraps onto a
-// fourth line pushes the bottom of the page out of view. Measured at both viewport budgets with the
-// worst link there is -- every field rejected, so every field echoed. Enough to recognise what was typed.
 const PRESET_SHOWN_MAX = 14;
-
 function presetNumber(text) {
-  // The page prints a real minus sign (U+2212), so a number pasted from the screen starts with one.
-  const s = text.trim().replace(/^−/, '-');
-  if (!PRESET_NUMBER.test(s)) return null;
-  const n = Number(s);
-  return Number.isFinite(n) ? n : null;           // 400 digits overflow to Infinity
+const s = text.trim().replace(/^−/, '-');
+if (!PRESET_NUMBER.test(s)) return null;
+const n = Number(s);
+return Number.isFinite(n) ? n : null;           // 400 digits overflow to Infinity
 }
-
-// A rejected value is echoed back, but a 2,000-character one would overflow the page.
 function presetShown(raw) {
-  const chars = Array.from(raw);
-  return chars.length > PRESET_SHOWN_MAX ? chars.slice(0, PRESET_SHOWN_MAX).join('') + '…' : raw;
+const chars = Array.from(raw);
+return chars.length > PRESET_SHOWN_MAX ? chars.slice(0, PRESET_SHOWN_MAX).join('') + '…' : raw;
 }
-
-// Reads one field's number. Returns the snapped value, or undefined (and an ignored note) when it is not a number.
 function presetValue(f, raw, out) {
-  const n = presetNumber(raw);
-  if (n === null) {
-    out.ignored.push(`${f.label} = ${presetShown(raw)} (use a number of ${f.unit})`);
-    return undefined;
-  }
-  const s = fieldSnap(f, n);
-  // Compare what would be PRINTED: a snap too small to show is no news.
-  if (fieldShow(f, n) !== fieldShow(f, s)) {
-    out.adjusted.push(`${f.label} ${unitText(fieldShow(f, n), f.unit)} → ${unitText(fieldShow(f, s), f.unit)}`);
-  }
-  return s;
+const n = presetNumber(raw);
+if (n === null) {
+out.ignored.push(`${f.label} = ${presetShown(raw)} (use a number of ${f.unit})`);
+return undefined;
 }
-
-// -> { values: { key: snapped value, only for keys the link set }, adjusted: [...], ignored: [...] }
+const s = fieldSnap(f, n);
+if (fieldShow(f, n) !== fieldShow(f, s)) {
+out.adjusted.push(`${f.label} ${unitText(fieldShow(f, n), f.unit)} → ${unitText(fieldShow(f, s), f.unit)}`);
+}
+return s;
+}
 function parsePresets(search, fields = FIELDS) {
-  const q = new URLSearchParams(search || '');
-  const out = { values: {}, adjusted: [], ignored: [] };
-  for (const f of fields) {
-    const raw = q.get(f.key);
-    if (raw === null) continue;
-    const v = presetValue(f, raw, out);
-    if (v !== undefined) out.values[f.key] = v;
-  }
-  return out;
+const q = new URLSearchParams(search || '');
+const out = { values: {}, adjusted: [], ignored: [] };
+for (const f of fields) {
+const raw = q.get(f.key);
+if (raw === null) continue;
+const v = presetValue(f, raw, out);
+if (v !== undefined) out.values[f.key] = v;
 }
-
+return out;
+}
 function describePresets(p, fields = FIELDS) {
-  const set = fields.filter(f => p.values[f.key] !== undefined)
-    .map(f => `${f.label} = ${fieldText(f, p.values[f.key])}`);
-  const parts = [];
-  if (set.length) parts.push(`From the link: ${set.join(', ')}.`);
-  else if (p.adjusted.length || p.ignored.length) parts.push('From the link: nothing set.');
-  if (p.adjusted.length) parts.push(`Adjusted: ${p.adjusted.join('; ')}.`);
-  if (p.ignored.length) parts.push(`Ignored: ${p.ignored.join('; ')}.`);
-  return parts.join(' ');
+const set = fields.filter(f => p.values[f.key] !== undefined)
+.map(f => `${f.label} = ${fieldText(f, p.values[f.key])}`);
+const parts = [];
+if (set.length) parts.push(`From the link: ${set.join(', ')}.`);
+else if (p.adjusted.length || p.ignored.length) parts.push('From the link: nothing set.');
+if (p.adjusted.length) parts.push(`Adjusted: ${p.adjusted.join('; ')}.`);
+if (p.ignored.length) parts.push(`Ignored: ${p.ignored.join('; ')}.`);
+return parts.join(' ');
 }
-
 // ===== scene.js =====
-
-
-
-
-
-
-// The figure. One svg, four panels, redrawn from the stored inputs on every change. Every graphic is
-// a TOP-LEVEL element with class `g` and every label a TOP-LEVEL `text.t`, because that is all the
-// browser harness can measure.
-//
-// NOTATION (the Wiki_Vault reference): the force the student sets is F_D; the pin's reaction is F_A;
-// the cable's pull on the beam takes both letters of the segment it acts along, F_BE at B and F_CE
-// at C. The two cable forces are DRAWN IN THE SAME COLOUR because they are one cable with one
-// tension, which is the fact the whole problem turns on. Every vector carries a drawn arrow over its
-// letter.
-
-// 'F' with a DRAWN arrow over it (the Unicode combining arrow does not render: see svg.js), then the
-// subscript as a lowered tspan. The subscripts come from physics.js, one source of truth.
 const FORCE_SYM = {
-  load: ['F', FORCE_SUB.load], cableB: ['F', FORCE_SUB.cableB],
-  cableC: ['F', FORCE_SUB.cableC], pin: ['F', FORCE_SUB.pin]
+load: ['F', FORCE_SUB.load], cableB: ['F', FORCE_SUB.cableB],
+cableC: ['F', FORCE_SUB.cableC], pin: ['F', FORCE_SUB.pin]
 };
 const symbolSegs = ([letter, sub]) => [{ t: letter, vec: true }, { t: sub, sub: true }];
-
 const COLOR_OF = { load: COLORS.load, cable: COLORS.cable, pin: COLORS.pin };
 const SHAFT = 4.2;
 const DIM_DP = 0;
 const DOWN = snapAt(fieldByKey('dir'));          // the direction the hanging weight pulls: 270 degrees
-
-// What the figure says when the equations ask the cable to push. Exported so the layout tests can
-// feed the real line to the label solver instead of a stand-in of a different length.
 const SLACK_NOTE = 'the cable would have to PUSH here: it goes slack';
-
-// How far under a heading its caption sits, and the second caption under the first. TWENTY-FOUR,
-// not the twenty that was enough at the smaller caption size: a caption stands 0.96 of its own size
-// above its baseline, so at SUB units 20 leaves it touching the heading's descender. Exported so the
-// layout tests place the panel's own lines exactly where the figure does.
 const CAPTION_DY = 24;
-
-// The length of an arrow's FIRST shaft piece, which is the `line` the browser harness measures (a
-// shaft is drawn in short collinear pieces: see svg.js). One formula, shared with the tracks below.
 function firstPiece(mag) {
-  const len = mag * FORCE_U;
-  if (!(len > 0)) return 0;
-  const head = Math.min(HEAD_MAX, len * 0.55);
-  return (len - head) / shaftPieces(len, head);
+const len = mag * FORCE_U;
+if (!(len > 0)) return 0;
+const head = Math.min(HEAD_MAX, len * 0.55);
+return (len - head) / shaftPieces(len, head);
 }
-
-// What the browser harness must find painted where, for each state. The harness keeps its OWN copy
-// of this table, written from the equations rather than from this file, and test/harness.test.js
-// fails if the two ever disagree on any state of the grid. `want` returns null when the element must
-// be ABSENT -- which is how the "the cable carries nothing" case gets pinned down.
 const SCENE_TRACKS = [
-  { sel: 'circle.load-handle', measure: 'cx',
-    want: (s) => beamPoints(PANELS.space.baseY, PANELS.space.baseX).D.x + s.f * cosDeg(s.dir) * FORCE_U },
-  { sel: 'circle.load-handle', measure: 'cy',
-    want: (s) => (s.f === 0 ? handleRest().y : PANELS.space.baseY - s.f * sinDeg(s.dir) * FORCE_U) },
-  // The vertical run of cable: its arrow is straight up or straight down, so its first piece is as
-  // tall as the piece is long.
-  { sel: 'line.shaft.pt.cableB', measure: 'height',
-    want: (s) => (derive(s).magBE === 0 ? null : firstPiece(derive(s).magBE)) },
-  // The inclined run: one across for every two up, so its first piece is 1/sqrt5 of its length wide.
-  { sel: 'line.shaft.pt.cableC', measure: 'width',
-    want: (s) => (derive(s).magCE === 0 ? null : firstPiece(derive(s).magCE) / SQ5) }
+{ sel: 'circle.load-handle', measure: 'cx',
+want: (s) => beamPoints(PANELS.space.baseY, PANELS.space.baseX).D.x + s.f * cosDeg(s.dir) * FORCE_U },
+{ sel: 'circle.load-handle', measure: 'cy',
+want: (s) => (s.f === 0 ? handleRest().y : PANELS.space.baseY - s.f * sinDeg(s.dir) * FORCE_U) },
+{ sel: 'line.shaft.pt.cableB', measure: 'height',
+want: (s) => (derive(s).magBE === 0 ? null : firstPiece(derive(s).magBE)) },
+{ sel: 'line.shaft.pt.cableC', measure: 'width',
+want: (s) => (derive(s).magCE === 0 ? null : firstPiece(derive(s).magCE) / SQ5) }
 ];
-
-// A force's label: its vector name, then its magnitude in pounds.
 function forceLabel(key, mag) {
-  return [...symbolSegs(FORCE_SYM[key]), { t: ' ' + unitText(fmt(mag, FORCE_DP), 'lb') }];
+return [...symbolSegs(FORCE_SYM[key]), { t: ' ' + unitText(fmt(mag, FORCE_DP), 'lb') }];
 }
-
-// The direction of the force at D, as the figure prints it.
 function angleLabel(dir) {
-  return [{ t: 'θ' }, { t: ' ' + unitText(fmtFixed(dir, ANGLE_DP), '°') }];
+return [{ t: 'θ' }, { t: ' ' + unitText(fmtFixed(dir, ANGLE_DP), '°') }];
 }
-
-// What a screen reader says the handle is set to. role="slider" with no value reads as an empty
-// control, and this is the one thing on the page a reader cannot see for themselves.
 function handleValueText(s) {
-  const at = s.dir === DOWN ? ', straight down' : '';
-  return `${unitText(fmtFixed(s.f, 0), 'pounds')} at ${unitText(fmtFixed(s.dir, ANGLE_DP), 'degrees')}${at}`;
+const at = s.dir === DOWN ? ', straight down' : '';
+return `${unitText(fmtFixed(s.f, 0), 'pounds')} at ${unitText(fmtFixed(s.dir, ANGLE_DP), 'degrees')}${at}`;
 }
-
-// A length in feet, as the figure prints it.
 function footLabel(ft) {
-  return unitText(fmtFixed(ft, DIM_DP), 'ft');
+return unitText(fmtFixed(ft, DIM_DP), 'ft');
 }
-
 const boxOf = (x0, y0, x1, y1) => ({ x0: Math.min(x0, x1), x1: Math.max(x0, x1), y0: Math.min(y0, y1), y1: Math.max(y0, y1) });
 const circleBox = (c, r) => boxOf(c.x - r, c.y - r, c.x + r, c.y + r);
-
-// A panel collects, as it draws: the boxes a label must keep off (`obs`) and the labels themselves.
-// A pinned item is a text that will not move but still pushes the others away.
 function sheet(svg, panel) {
-  const obs = [], items = [], draws = [];
-  return {
-    obs, items,
-    block(...boxes) { obs.push(...boxes); },
-    fixed(x, y, segs, opts = {}) {
-      text(svg, x, y, segs, { size: opts.size || TEXT, sub: SUB, ...opts });
-      items.push({ spot: { x, y, anchor: opts.anchor || 'start' }, chars: segPlain(segs).length,
-        size: opts.size || TEXT, pinned: true });
-    },
-    moving(segs, spot, fill, opts = {}) {
-      items.push({ spot, chars: segPlain(segs).length, size: opts.size || TEXT, pinned: false, maxShift: opts.maxShift });
-      draws.push({ segs, fill, at: items.length - 1, weight: opts.weight || 600, size: opts.size || TEXT });
-    },
-    settle() {
-      const placed = placeLabels(items, obs, panel.box);
-      for (const d of draws) {
-        const p = placed[d.at];
-        text(svg, p.x, p.y, d.segs, { size: d.size, sub: SUB, anchor: p.anchor, fill: d.fill, weight: d.weight });
-      }
-    }
-  };
+const obs = [], items = [], draws = [];
+return {
+obs, items,
+block(...boxes) { obs.push(...boxes); },
+fixed(x, y, segs, opts = {}) {
+text(svg, x, y, segs, { size: opts.size || TEXT, sub: SUB, ...opts });
+items.push({ spot: { x, y, anchor: opts.anchor || 'start' }, chars: segPlain(segs).length,
+size: opts.size || TEXT, pinned: true });
+},
+moving(segs, spot, fill, opts = {}) {
+items.push({ spot, chars: segPlain(segs).length, size: opts.size || TEXT, pinned: false, maxShift: opts.maxShift });
+draws.push({ segs, fill, at: items.length - 1, weight: opts.weight || 600, size: opts.size || TEXT });
+},
+settle() {
+const placed = placeLabels(items, obs, panel.box);
+for (const d of draws) {
+const p = placed[d.at];
+text(svg, p.x, p.y, d.segs, { size: d.size, sub: SUB, anchor: p.anchor, fill: d.fill, weight: d.weight });
 }
-
+}
+};
+}
 function heading(sh, x, y, str) { sh.fixed(x, y, str, { weight: 700, halo: false }); }
 function caption(sh, x, y, str, fill = COLORS.faint, anchor = 'start') { sh.fixed(x, y, str, { size: SUB, fill, anchor, halo: false }); }
-
 function rules(svg) {
-  const line = (a) => el('line', { class: 'g sep', x1: a.x0 !== undefined ? a.x0 : a.x, y1: a.y0 !== undefined ? a.y0 : a.y,
-    x2: a.x1 !== undefined ? a.x1 : a.x, y2: a.y1 !== undefined ? a.y1 : a.y, stroke: '#dde4ec', 'stroke-width': 2 }, svg);
-  line(SPLITS.across); line(SPLITS.upper); line(SPLITS.lower);
+const line = (a) => el('line', { class: 'g sep', x1: a.x0 !== undefined ? a.x0 : a.x, y1: a.y0 !== undefined ? a.y0 : a.y,
+x2: a.x1 !== undefined ? a.x1 : a.x, y2: a.y1 !== undefined ? a.y1 : a.y, stroke: '#dde4ec', 'stroke-width': 2 }, svg);
+line(SPLITS.across); line(SPLITS.upper); line(SPLITS.lower);
 }
-
 function dimension(svg, sh, x0, x1, y, labelY, feet) {
-  const g = el('g', { class: 'g dim' }, svg);
-  el('line', { x1: x0, y1: y, x2: x1, y2: y, stroke: COLORS.dim, 'stroke-width': 1.6 }, g);
-  for (const x of [x0, x1]) el('line', { x1: x, y1: y - 6, x2: x, y2: y + 6, stroke: COLORS.dim, 'stroke-width': 1.6 }, g);
-  sh.block(boxOf(x0, y - 6, x1, y + 6));
-  // BELOW the line, not above it: above it is where the hanging weight is drawn and where a force at
-  // D swung downwards reaches, and a dimension label is PINNED, so it cannot get out of the way.
-  // The gap to the line is set from the MEASURED text box, not from the font size: at 21 units a
-  // label reaches about 17 above its baseline once the white halo is counted, and the first run of
-  // the browser harness found all three labels sitting on their own dimension lines.
-  sh.fixed((x0 + x1) / 2, labelY, footLabel(feet), { anchor: 'middle', fill: COLORS.dim });
+const g = el('g', { class: 'g dim' }, svg);
+el('line', { x1: x0, y1: y, x2: x1, y2: y, stroke: COLORS.dim, 'stroke-width': 1.6 }, g);
+for (const x of [x0, x1]) el('line', { x1: x, y1: y - 6, x2: x, y2: y + 6, stroke: COLORS.dim, 'stroke-width': 1.6 }, g);
+sh.block(boxOf(x0, y - 6, x1, y + 6));
+sh.fixed((x0 + x1) / 2, labelY, footLabel(feet), { anchor: 'middle', fill: COLORS.dim });
 }
-
 function beamRect(svg, sh, p) {
-  el('rect', { class: 'g beam', x: p.A.x, y: p.A.y - 8, width: p.D.x - p.A.x, height: 16, rx: 3,
-    fill: COLORS.beam, stroke: COLORS.ink, 'stroke-width': 1.8 }, svg);
-  sh.block(boxOf(p.A.x, p.A.y - 8, p.D.x, p.A.y + 8));
+el('rect', { class: 'g beam', x: p.A.x, y: p.A.y - 8, width: p.D.x - p.A.x, height: 16, rx: 3,
+fill: COLORS.beam, stroke: COLORS.ink, 'stroke-width': 1.8 }, svg);
+sh.block(boxOf(p.A.x, p.A.y - 8, p.D.x, p.A.y + 8));
 }
-
-// The pin in the wall at A: the wall face, its hatching and the joint circle.
 function pinSupport(svg, sh, p) {
-  const x = p.A.x - 12;
-  el('line', { class: 'g wallface', x1: x, y1: p.A.y - WALL_REACH, x2: x, y2: p.A.y + WALL_REACH,
-    stroke: COLORS.ink, 'stroke-width': 3 }, svg);
-  hatch(svg, { x, y: p.A.y - WALL_REACH + 2 }, { x, y: p.A.y + WALL_REACH - 2 }, -1, -1, 7, 11, COLORS.wall);
-  el('path', { class: 'g pinplate', d: `M${x} ${p.A.y - 17} L${p.A.x} ${p.A.y} L${x} ${p.A.y + 17} Z`,
-    fill: COLORS.wall, stroke: COLORS.ink, 'stroke-width': 1.8 }, svg);
-  el('circle', { class: 'g pc', cx: p.A.x, cy: p.A.y, r: 5.5, fill: '#ffffff', stroke: COLORS.ink, 'stroke-width': 1.8 }, svg);
-  sh.block(boxOf(x - 12, p.A.y - WALL_REACH, p.A.x + 6, p.A.y + WALL_REACH));
+const x = p.A.x - 12;
+el('line', { class: 'g wallface', x1: x, y1: p.A.y - WALL_REACH, x2: x, y2: p.A.y + WALL_REACH,
+stroke: COLORS.ink, 'stroke-width': 3 }, svg);
+hatch(svg, { x, y: p.A.y - WALL_REACH + 2 }, { x, y: p.A.y + WALL_REACH - 2 }, -1, -1, 7, 11, COLORS.wall);
+el('path', { class: 'g pinplate', d: `M${x} ${p.A.y - 17} L${p.A.x} ${p.A.y} L${x} ${p.A.y + 17} Z`,
+fill: COLORS.wall, stroke: COLORS.ink, 'stroke-width': 1.8 }, svg);
+el('circle', { class: 'g pc', cx: p.A.x, cy: p.A.y, r: 5.5, fill: '#ffffff', stroke: COLORS.ink, 'stroke-width': 1.8 }, svg);
+sh.block(boxOf(x - 12, p.A.y - WALL_REACH, p.A.x + 6, p.A.y + WALL_REACH));
 }
-
-// ---- panel 1: the situation (upper left) --------------------------------------------------------
 function drawSpace(svg, s) {
-  const P = PANELS.space;
-  const sh = sheet(svg, P);
-  const p = beamPoints(P.baseY, P.baseX);
-  const d = derive(s);
-  heading(sh, P.headX, P.headY, 'The situation');
-  caption(sh, P.headX, P.headY + CAPTION_DY, 'drag the arrowhead');
-
-  // the ceiling the pulley hangs from, and the pulley itself
-  const g = pulleyGeom();
-  const pc = atFoot(g.centre, P.baseY, P.baseX);
-  const wheelR = g.r * FOOT_U;
-  const ceilY = pc.y - wheelR - 18;
-  el('line', { class: 'g ceiling', x1: pc.x - CEIL_REACH, y1: ceilY, x2: pc.x + CEIL_REACH, y2: ceilY,
-    stroke: COLORS.ink, 'stroke-width': 3 }, svg);
-  hatch(svg, { x: pc.x - CEIL_REACH + 2, y: ceilY }, { x: pc.x + CEIL_REACH - 2, y: ceilY }, 1, -1, 7, 11, COLORS.wall);
-  el('line', { class: 'g mount', x1: pc.x, y1: ceilY, x2: pc.x, y2: pc.y, stroke: COLORS.ink, 'stroke-width': 2.4 }, svg);
-  sh.block(boxOf(pc.x - CEIL_REACH, ceilY - 12, pc.x + CEIL_REACH, pc.y));
-  el('circle', { class: 'g wheel', cx: pc.x, cy: pc.y, r: wheelR * 0.9, fill: '#e8edf2', stroke: COLORS.ink, 'stroke-width': 2 }, svg);
-  el('circle', { class: 'g hub', cx: pc.x, cy: pc.y, r: wheelR * 0.26, fill: '#ffffff', stroke: COLORS.ink, 'stroke-width': 1.8 }, svg);
-  sh.block(circleBox(pc, wheelR));
-
-  pinSupport(svg, sh, p);
-  beamRect(svg, sh, p);
-
-  // the cable, in the short pieces it is really drawn from (see layout.js)
-  for (const c of cableSegments(P.baseY, P.baseX)) {
-    el('line', { class: 'g cable', x1: c.x1, y1: c.y1, x2: c.x2, y2: c.y2,
-      stroke: COLORS.cable, 'stroke-width': 3.4, 'stroke-linecap': 'round' }, svg);
-    sh.block(boxOf(c.x1, c.y1, c.x2, c.y2));
-  }
-  // the eyes the cable is tied to
-  for (const q of [p.B, p.C]) {
-    el('circle', { class: 'g eye', cx: q.x, cy: q.y - 8, r: 4, fill: '#ffffff', stroke: COLORS.cable, 'stroke-width': 2.2 }, svg);
-    sh.block(circleBox({ x: q.x, y: q.y - 8 }, 4));
-  }
-
-  // the slope triangle: its hypotenuse IS the cable, so the 2 and the 1 cannot lie about the line
-  const tri = slopeTriangle(P.baseY, P.baseX);
-  for (const [a, b] of [[tri.top, tri.foot], [tri.foot, tri.right]]) {
-    el('line', { class: 'g slope', x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: COLORS.dim, 'stroke-width': 1.6 }, svg);
-    sh.block(boxOf(a.x, a.y, b.x, b.y));
-  }
-  sh.moving(footLabel(SLOPE_RISE), { x: tri.riseLabel.x, y: tri.riseLabel.y, anchor: 'end' }, COLORS.dim,
-    { size: SUB, weight: 400, maxShift: PLACE_NAME_SHIFT });
-  sh.moving(footLabel(SLOPE_RUN), { x: tri.runLabel.x, y: tri.runLabel.y, anchor: 'middle' }, COLORS.dim,
-    { size: SUB, weight: 400, maxShift: PLACE_NAME_SHIFT });
-
-  // THE HANGING WEIGHT, LEFT IN OUTLINE. It is where the force at D started life, and the direction
-  // the force snaps to. When the force IS straight down the outline fills in and its stroke goes
-  // solid, so the snap can be seen and not only felt.
-  const m = massOutline(P.baseY, P.baseX);
-  const onDown = s.dir === DOWN && s.f > 0;
-  el('line', { class: 'g hanger', x1: m.hook.x, y1: m.hook.y, x2: m.top.x, y2: m.top.y,
-    stroke: onDown ? COLORS.load : COLORS.faint, 'stroke-width': 2,
-    'stroke-dasharray': onDown ? null : '5 4' }, svg);
-  el('rect', { class: `g mass${onDown ? ' on' : ''}`, x: m.body.x, y: m.body.y, width: m.body.w, height: m.body.h,
-    rx: m.body.rx, fill: onDown ? '#fdeaea' : 'none', stroke: onDown ? COLORS.load : COLORS.faint,
-    'stroke-width': onDown ? 2.4 : 2, 'stroke-dasharray': onDown ? null : '5 4' }, svg);
-  sh.block(m.box);
-
-  // the dimensions, below the weight so nothing has to share a line with it
-  for (const q of [p.A, p.B, p.C, p.D]) {
-    const from = q === p.D ? m.box.y1 + 6 : P.baseY + 14;
-    el('line', { class: 'g ext', x1: q.x, y1: from, x2: q.x, y2: P.dimY + 8, stroke: COLORS.faint,
-      'stroke-width': 1.2, 'stroke-dasharray': '5 5' }, svg);
-  }
-  dimension(svg, sh, p.A.x, p.B.x, P.dimY, P.dimLabelY, AB);
-  dimension(svg, sh, p.B.x, p.C.x, P.dimY, P.dimLabelY, BC);
-  dimension(svg, sh, p.C.x, p.D.x, P.dimY, P.dimLabelY, CD);
-
-  // the force at D: tail on the beam, tip at the handle
-  const a = loadArrow(s, P.baseY, P.baseX);
-  if (a) {
-    sh.block(...arrow(svg, a.tail, a.tip, COLORS.load, 4.6, 'space load', HEAD_MAX));
-    // The arrow sweeps a full circle about D and reaches most of the panel, so its label does not
-    // follow it: it sits in the panel's top right corner, always in the same place and always legible.
-    sh.fixed(P.box.x1 - 8, P.headY, forceLabel('load', d.magD), { anchor: 'end', fill: COLORS.load, weight: 600 });
-    // 36 units below the magnitude, not the 26 that looked like enough: measured in Chromium, a
-    // label carrying a drawn vector bar AND a subscript stands 20 units above its baseline and 10
-    // below, so two of them 26 apart overlap by four. The browser harness is what said so.
-    sh.fixed(P.box.x1 - 8, P.headY + 36, angleLabel(s.dir), { anchor: 'end', fill: COLORS.load, weight: 600 });
-  }
-  const h = a ? a.tip : handleRest(P.baseY, P.baseX);
-  el('circle', { class: 'g handle load-handle', cx: h.x, cy: h.y, r: HANDLE_R, fill: '#ffffff', stroke: COLORS.load,
-    'stroke-width': 3.2, tabindex: 0, role: 'slider', 'aria-label': 'Force at D: drag it, or use the arrow keys',
-    'aria-valuetext': handleValueText(s) }, svg);
-  sh.block(circleBox(h, HANDLE_R + 2));
-
-  // point names
-  const name = (x, y, t, anchor) => sh.moving(t, { x, y, anchor }, COLORS.ink, { weight: 700, maxShift: PLACE_NAME_SHIFT });
-  name(p.A.x + 6, P.baseY - 20, 'A', 'start');
-  name(p.B.x - 8, P.baseY - 20, 'B', 'end');
-  name(p.C.x + 10, P.baseY - 20, 'C', 'start');
-  name(p.D.x + 14, P.baseY - 16, 'D', 'start');
-  name(pc.x - wheelR - 8, pc.y + 6, 'E', 'end');
-  sh.settle();
+const P = PANELS.space;
+const sh = sheet(svg, P);
+const p = beamPoints(P.baseY, P.baseX);
+const d = derive(s);
+heading(sh, P.headX, P.headY, 'The situation');
+caption(sh, P.headX, P.headY + CAPTION_DY, 'drag the arrowhead');
+const g = pulleyGeom();
+const pc = atFoot(g.centre, P.baseY, P.baseX);
+const wheelR = g.r * FOOT_U;
+const ceilY = pc.y - wheelR - 18;
+el('line', { class: 'g ceiling', x1: pc.x - CEIL_REACH, y1: ceilY, x2: pc.x + CEIL_REACH, y2: ceilY,
+stroke: COLORS.ink, 'stroke-width': 3 }, svg);
+hatch(svg, { x: pc.x - CEIL_REACH + 2, y: ceilY }, { x: pc.x + CEIL_REACH - 2, y: ceilY }, 1, -1, 7, 11, COLORS.wall);
+el('line', { class: 'g mount', x1: pc.x, y1: ceilY, x2: pc.x, y2: pc.y, stroke: COLORS.ink, 'stroke-width': 2.4 }, svg);
+sh.block(boxOf(pc.x - CEIL_REACH, ceilY - 12, pc.x + CEIL_REACH, pc.y));
+el('circle', { class: 'g wheel', cx: pc.x, cy: pc.y, r: wheelR * 0.9, fill: '#e8edf2', stroke: COLORS.ink, 'stroke-width': 2 }, svg);
+el('circle', { class: 'g hub', cx: pc.x, cy: pc.y, r: wheelR * 0.26, fill: '#ffffff', stroke: COLORS.ink, 'stroke-width': 1.8 }, svg);
+sh.block(circleBox(pc, wheelR));
+pinSupport(svg, sh, p);
+beamRect(svg, sh, p);
+for (const c of cableSegments(P.baseY, P.baseX)) {
+el('line', { class: 'g cable', x1: c.x1, y1: c.y1, x2: c.x2, y2: c.y2,
+stroke: COLORS.cable, 'stroke-width': 3.4, 'stroke-linecap': 'round' }, svg);
+sh.block(boxOf(c.x1, c.y1, c.x2, c.y2));
 }
-
-// ---- the free-body arrows, shared by panels 2 and 3 ---------------------------------------------
+for (const q of [p.B, p.C]) {
+el('circle', { class: 'g eye', cx: q.x, cy: q.y - 8, r: 4, fill: '#ffffff', stroke: COLORS.cable, 'stroke-width': 2.2 }, svg);
+sh.block(circleBox({ x: q.x, y: q.y - 8 }, 4));
+}
+const tri = slopeTriangle(P.baseY, P.baseX);
+for (const [a, b] of [[tri.top, tri.foot], [tri.foot, tri.right]]) {
+el('line', { class: 'g slope', x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: COLORS.dim, 'stroke-width': 1.6 }, svg);
+sh.block(boxOf(a.x, a.y, b.x, b.y));
+}
+sh.moving(footLabel(SLOPE_RISE), { x: tri.riseLabel.x, y: tri.riseLabel.y, anchor: 'end' }, COLORS.dim,
+{ size: SUB, weight: 400, maxShift: PLACE_NAME_SHIFT });
+sh.moving(footLabel(SLOPE_RUN), { x: tri.runLabel.x, y: tri.runLabel.y, anchor: 'middle' }, COLORS.dim,
+{ size: SUB, weight: 400, maxShift: PLACE_NAME_SHIFT });
+const m = massOutline(P.baseY, P.baseX);
+const onDown = s.dir === DOWN && s.f > 0;
+el('line', { class: 'g hanger', x1: m.hook.x, y1: m.hook.y, x2: m.top.x, y2: m.top.y,
+stroke: onDown ? COLORS.load : COLORS.faint, 'stroke-width': 2,
+'stroke-dasharray': onDown ? null : '5 4' }, svg);
+el('rect', { class: `g mass${onDown ? ' on' : ''}`, x: m.body.x, y: m.body.y, width: m.body.w, height: m.body.h,
+rx: m.body.rx, fill: onDown ? '#fdeaea' : 'none', stroke: onDown ? COLORS.load : COLORS.faint,
+'stroke-width': onDown ? 2.4 : 2, 'stroke-dasharray': onDown ? null : '5 4' }, svg);
+sh.block(m.box);
+for (const q of [p.A, p.B, p.C, p.D]) {
+const from = q === p.D ? m.box.y1 + 6 : P.baseY + 14;
+el('line', { class: 'g ext', x1: q.x, y1: from, x2: q.x, y2: P.dimY + 8, stroke: COLORS.faint,
+'stroke-width': 1.2, 'stroke-dasharray': '5 5' }, svg);
+}
+dimension(svg, sh, p.A.x, p.B.x, P.dimY, P.dimLabelY, AB);
+dimension(svg, sh, p.B.x, p.C.x, P.dimY, P.dimLabelY, BC);
+dimension(svg, sh, p.C.x, p.D.x, P.dimY, P.dimLabelY, CD);
+const a = loadArrow(s, P.baseY, P.baseX);
+if (a) {
+sh.block(...arrow(svg, a.tail, a.tip, COLORS.load, 4.6, 'space load', HEAD_MAX));
+sh.fixed(P.box.x1 - 8, P.headY, forceLabel('load', d.magD), { anchor: 'end', fill: COLORS.load, weight: 600 });
+sh.fixed(P.box.x1 - 8, P.headY + 36, angleLabel(s.dir), { anchor: 'end', fill: COLORS.load, weight: 600 });
+}
+const h = a ? a.tip : handleRest(P.baseY, P.baseX);
+el('circle', { class: 'g handle load-handle', cx: h.x, cy: h.y, r: HANDLE_R, fill: '#ffffff', stroke: COLORS.load,
+'stroke-width': 3.2, tabindex: 0, role: 'slider', 'aria-label': 'Force at D: drag it, or use the arrow keys',
+'aria-valuetext': handleValueText(s) }, svg);
+sh.block(circleBox(h, HANDLE_R + 2));
+const name = (x, y, t, anchor) => sh.moving(t, { x, y, anchor }, COLORS.ink, { weight: 700, maxShift: PLACE_NAME_SHIFT });
+name(p.A.x + 6, P.baseY - 20, 'A', 'start');
+name(p.B.x - 8, P.baseY - 20, 'B', 'end');
+name(p.C.x + 10, P.baseY - 20, 'C', 'start');
+name(p.D.x + 14, P.baseY - 16, 'D', 'start');
+name(pc.x - wheelR - 8, pc.y + 6, 'E', 'end');
+sh.settle();
+}
 function drawFbdArrows(svg, sh, arrows, cls) {
-  for (const a of arrows) sh.block(...arrow(svg, a.tail, a.tip, COLOR_OF[a.cls], SHAFT, `${cls} ${a.key}`, HEAD_MAX));
-  for (const a of arrows) sh.moving(forceLabel(a.key, a.mag), labelSpot(a.tail, a.tip), COLOR_OF[a.cls]);
+for (const a of arrows) sh.block(...arrow(svg, a.tail, a.tip, COLOR_OF[a.cls], SHAFT, `${cls} ${a.key}`, HEAD_MAX));
+for (const a of arrows) sh.moving(forceLabel(a.key, a.mag), labelSpot(a.tail, a.tip), COLOR_OF[a.cls]);
 }
-
-// ---- panel 2: the beam as a single point (upper right) ------------------------------------------
 function drawPoint(svg, s) {
-  const P = PANELS.point;
-  const sh = sheet(svg, P);
-  const o = { x: P.ox, y: P.oy };
-  heading(sh, P.headX, P.headY, 'The beam as a single point');
-  // Said plainly, because it is the one thing this panel can mislead about: shrinking the beam to a
-  // point keeps the forces and throws away where they act, and where they act is the whole of the
-  // moment equation -- which is the only equation that knows about the tension.
-  caption(sh, P.headX, P.headY + CAPTION_DY, 'the forces only, not where they act');
-  el('circle', { class: 'g dot origin', cx: o.x, cy: o.y, r: 7, fill: COLORS.ink }, svg);
-  sh.block(circleBox(o, 7));
-  drawFbdArrows(svg, sh, fbdArrows(s, o, false), 'pt');
-  sh.settle();
+const P = PANELS.point;
+const sh = sheet(svg, P);
+const o = { x: P.ox, y: P.oy };
+heading(sh, P.headX, P.headY, 'The beam as a single point');
+caption(sh, P.headX, P.headY + CAPTION_DY, 'the forces only, not where they act');
+el('circle', { class: 'g dot origin', cx: o.x, cy: o.y, r: 7, fill: COLORS.ink }, svg);
+sh.block(circleBox(o, 7));
+drawFbdArrows(svg, sh, fbdArrows(s, o, false), 'pt');
+sh.settle();
 }
-
-// ---- panel 3: the free-body diagram of the beam (lower left) ------------------------------------
 function drawExtended(svg, s) {
-  const P = PANELS.ext;
-  const sh = sheet(svg, P);
-  const p = beamPoints(P.baseY, P.baseX);
-  const d = derive(s);
-  heading(sh, P.headX, P.headY, 'Free-body diagram of the beam');
-  // The caption carries the fact the whole problem turns on. A frictionless pulley changes a cable's
-  // direction and nothing else, so the two arrows drawn here in the same colour are the same number.
-  caption(sh, P.headX, P.headY + CAPTION_DY, 'one cable over a frictionless pulley, so both pulls are the same size');
-  if (d.slack) {
-    // Not drawn as an answer, because it is not one: the arrows below are what the equations ask for,
-    // and what they ask for is a cable that pushes. It is set at the panel's RIGHT edge, away from
-    // the left end where the pin's label lands when it swings up -- the browser harness found those
-    // two sitting on each other when this line ran the full width.
-    caption(sh, P.box.x1 - 8, P.headY + 2 * CAPTION_DY, SLACK_NOTE, COLORS.load, 'end');
-  }
-  beamRect(svg, sh, p);
-  for (const q of [p.A, p.B, p.C, p.D]) {
-    el('circle', { class: 'g dot', cx: q.x, cy: q.y, r: 4.5, fill: COLORS.ink }, svg);
-    sh.block(circleBox(q, 4.5));
-  }
-
-  drawFbdArrows(svg, sh, fbdArrows(s, p.A, true), 'ext');
-
-  // Anything that comes out exactly zero is SAID, not left out: a missing arrow and a zero are the
-  // same picture otherwise, and which of these vanishes is the point of the whole simulation.
-  const zeroAt = { load: p.D, cableB: p.B, cableC: p.C, pin: p.A };
-  for (const f of forceList(s)) {
-    if (f.mag !== 0) continue;
-    sh.moving(forceLabel(f.key, 0), { x: zeroAt[f.key].x, y: p.A.y + 44, anchor: 'middle' }, COLORS.faint, { weight: 400 });
-  }
-  sh.settle();
+const P = PANELS.ext;
+const sh = sheet(svg, P);
+const p = beamPoints(P.baseY, P.baseX);
+const d = derive(s);
+heading(sh, P.headX, P.headY, 'Free-body diagram of the beam');
+caption(sh, P.headX, P.headY + CAPTION_DY, 'one cable over a frictionless pulley, so both pulls are the same size');
+if (d.slack) {
+caption(sh, P.box.x1 - 8, P.headY + 2 * CAPTION_DY, SLACK_NOTE, COLORS.load, 'end');
 }
-
-// ---- panel 4: the four forces tip to tail (lower right) -----------------------------------------
+beamRect(svg, sh, p);
+for (const q of [p.A, p.B, p.C, p.D]) {
+el('circle', { class: 'g dot', cx: q.x, cy: q.y, r: 4.5, fill: COLORS.ink }, svg);
+sh.block(circleBox(q, 4.5));
+}
+drawFbdArrows(svg, sh, fbdArrows(s, p.A, true), 'ext');
+const zeroAt = { load: p.D, cableB: p.B, cableC: p.C, pin: p.A };
+for (const f of forceList(s)) {
+if (f.mag !== 0) continue;
+sh.moving(forceLabel(f.key, 0), { x: zeroAt[f.key].x, y: p.A.y + 44, anchor: 'middle' }, COLORS.faint, { weight: 400 });
+}
+sh.settle();
+}
 function drawPolygon(svg, s) {
-  const P = PANELS.poly;
-  const sh = sheet(svg, P);
-  const d = derive(s);
-  heading(sh, P.headX, P.headY, 'The forces tip to tail');
-  caption(sh, P.headX, P.headY + CAPTION_DY, 'in equilibrium the chain closes');
-  if (d.magD === 0) {
-    // Anchored at the panel's left edge, not centred: centred, a line this long runs off the figure.
-    sh.fixed(P.x0, (P.y0 + P.y1) / 2, 'No force at D: nothing to balance.',
-      { size: SUB, anchor: 'start', fill: COLORS.faint, italic: true });
-    sh.settle();
-    return;
-  }
-  const verts = polygonVertices(s);
-  const fit = fitPolygon(verts, P);
-  const order = ['load', 'cableB', 'cableC', 'pin'];
-  const list = forceList(s);
-  const drawn = [];
-  for (let i = 0; i < order.length; i++) {
-    const from = fit.map(verts[i]), to = fit.map(verts[i + 1]);
-    if (Math.hypot(to.x - from.x, to.y - from.y) < 1e-6) continue;    // a force of zero adds no side
-    sh.block(...arrow(svg, from, to, COLOR_OF[list[i].cls], SHAFT, `poly ${order[i]}`, HEAD_MAX));
-    drawn.push({ key: order[i], cls: list[i].cls, mag: list[i].mag, from, to });
-  }
-  const barN = 100, bar = barN * fit.scale;
-  const by = P.y1 + 8;
-  el('line', { class: 'g scalebar', x1: P.x0, y1: by, x2: P.x0 + bar, y2: by, stroke: COLORS.faint, 'stroke-width': 3 }, svg);
-  sh.block(boxOf(P.x0, by - 2, P.x0 + bar, by + 2));
-  sh.fixed(P.x0 + bar + 7, by + 6, unitText(fmt(barN, 0), 'lb'), { size: SUB, anchor: 'start', fill: COLORS.faint });
-
-  const spots = polygonLabelSpots(drawn);
-  drawn.forEach((sd, i) => sh.moving(forceLabel(sd.key, sd.mag), spots[i], COLOR_OF[sd.cls]));
-  sh.settle();
+const P = PANELS.poly;
+const sh = sheet(svg, P);
+const d = derive(s);
+heading(sh, P.headX, P.headY, 'The forces tip to tail');
+caption(sh, P.headX, P.headY + CAPTION_DY, 'in equilibrium the chain closes');
+if (d.magD === 0) {
+sh.fixed(P.x0, (P.y0 + P.y1) / 2, 'No force at D: nothing to balance.',
+{ size: SUB, anchor: 'start', fill: COLORS.faint, italic: true });
+sh.settle();
+return;
 }
-
+const verts = polygonVertices(s);
+const fit = fitPolygon(verts, P);
+const order = ['load', 'cableB', 'cableC', 'pin'];
+const list = forceList(s);
+const drawn = [];
+for (let i = 0; i < order.length; i++) {
+const from = fit.map(verts[i]), to = fit.map(verts[i + 1]);
+if (Math.hypot(to.x - from.x, to.y - from.y) < 1e-6) continue;    // a force of zero adds no side
+sh.block(...arrow(svg, from, to, COLOR_OF[list[i].cls], SHAFT, `poly ${order[i]}`, HEAD_MAX));
+drawn.push({ key: order[i], cls: list[i].cls, mag: list[i].mag, from, to });
+}
+const barN = 100, bar = barN * fit.scale;
+const by = P.y1 + 8;
+el('line', { class: 'g scalebar', x1: P.x0, y1: by, x2: P.x0 + bar, y2: by, stroke: COLORS.faint, 'stroke-width': 3 }, svg);
+sh.block(boxOf(P.x0, by - 2, P.x0 + bar, by + 2));
+sh.fixed(P.x0 + bar + 7, by + 6, unitText(fmt(barN, 0), 'lb'), { size: SUB, anchor: 'start', fill: COLORS.faint });
+const spots = polygonLabelSpots(drawn);
+drawn.forEach((sd, i) => sh.moving(forceLabel(sd.key, sd.mag), spots[i], COLOR_OF[sd.cls]));
+sh.settle();
+}
 function createScene(svg) {
-  return {
-    render(s) {
-      clear(svg);
-      rules(svg);
-      drawSpace(svg, s);
-      drawPoint(svg, s);
-      drawExtended(svg, s);
-      drawPolygon(svg, s);
-    }
-  };
+return {
+render(s) {
+clear(svg);
+rules(svg);
+drawSpace(svg, s);
+drawPoint(svg, s);
+drawExtended(svg, s);
+drawPolygon(svg, s);
 }
-
-
+};
+}
 // ===== controls.js =====
-
-
-
-// Pure: what the controls show for state s. text[key] is the readout; atSnap[key] (only for a field with `snap`)
-// says whether the input sits on its snap value; atMark[key] (only for a field with `mark`) whether it sits on its mark.
 function controlsView(s) {
-  const text = {}, atSnap = {}, atMark = {};
-  for (const f of FIELDS) {
-    text[f.key] = fieldShow(f, s[f.key]);
-    if (f.snap) atSnap[f.key] = s[f.key] === snapAt(f);
-    if (f.mark) atMark[f.key] = s[f.key] === f.mark.value;
-  }
-  return { text, atSnap, atMark };
+const text = {}, atSnap = {}, atMark = {};
+for (const f of FIELDS) {
+text[f.key] = fieldShow(f, s[f.key]);
+if (f.snap) atSnap[f.key] = s[f.key] === snapAt(f);
+if (f.mark) atMark[f.key] = s[f.key] === f.mark.value;
 }
-
-// Keys that move a range input; a pointer drag is everything else.
-const CONTROLS_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'];
-
+return { text, atSnap, atMark };
+}
 function controlsSetText(node, str) {
-  if (node.textContent !== str) node.textContent = str;
+if (node.textContent !== str) node.textContent = str;
 }
-
-// root: the controls container (key and pointer events are heard here).
-// parts: { sliders: { key: el }, readouts: { key: el }, snaps: { key: el }, marks: { key: el } } -- the
-// page's elements. `readouts` has one per input in FIELDS; `sliders` only for those that have one
-// (SLIDER_FIELDS, which on this page is empty: both inputs are dragged, so they are stored and
-// snapped like any input but have no slider to bind); `snaps` only for the fields with `snap`,
-// `marks` only for those with `mark`. `reset` is optional: this page has no reset button.
-// Binds the sliders and the reset button to state; render(s) shows state s in them.
-function createControls(root, state, parts) {
-  let viaKeyboard = false;
-
-  function showSlider(slider, readout, text, value, unitWord) {
-    // Move the thumb when the state's value differs from it: a snap, or the keyboard's jump past the zero zone.
-    if (Number(slider.value) !== value) slider.value = String(value);
-    slider.setAttribute('aria-valuetext', withUnit(text, unitWord));
-    controlsSetText(readout, text);
-  }
-
-  // EVERY field gets a readout, whether or not it has a slider: on this page both inputs are set by
-  // dragging the arrow, and the bar under the figure is the only place their numbers are written down.
-  function render(s) {
-    const v = controlsView(s);
-    for (const f of FIELDS) {
-      if (parts.readouts[f.key]) controlsSetText(parts.readouts[f.key], v.text[f.key]);
-      if (f.snap && parts.snaps[f.key]) parts.snaps[f.key].classList.toggle('on', v.atSnap[f.key]);
-      if (f.mark && parts.marks[f.key]) parts.marks[f.key].classList.toggle('on', v.atMark[f.key]);
-    }
-    for (const f of SLIDER_FIELDS) {
-      showSlider(parts.sliders[f.key], parts.readouts[f.key], v.text[f.key], s[f.key], f.unitWord);
-    }
-  }
-
-  // A key marks the NEXT input event as a keyboard one; that event clears the mark. A key that changes nothing
-  // (a slider already at its end) fires no input, so a key release, a pointer press and losing focus clear it
-  // too, or the next drag would be taken for a key press.
-  const clearKey = () => { viaKeyboard = false; };
-  root.addEventListener('keydown', (e) => { if (CONTROLS_KEYS.includes(e.key)) viaKeyboard = true; });
-  root.addEventListener('keyup', clearKey);
-  root.addEventListener('pointerdown', clearKey);
-  root.addEventListener('focusout', clearKey);
-  if (typeof window !== 'undefined') window.addEventListener('blur', clearKey);
-
-  for (const f of SLIDER_FIELDS) {
-    const slider = parts.sliders[f.key];
-    slider.addEventListener('input', () => {
-      const kb = viaKeyboard;
-      viaKeyboard = false;
-      state.setField(f.key, Number(slider.value), kb);
-      render(state.getState());   // the state may not have changed (a snap back to 0): still put the thumb right
-    });
-  }
-  if (parts.reset) parts.reset.addEventListener('click', () => state.reset());
-
-  return { render };
+function createControls(parts) {
+function render(s) {
+const v = controlsView(s);
+for (const f of FIELDS) {
+if (parts.readouts[f.key]) controlsSetText(parts.readouts[f.key], v.text[f.key]);
+if (f.snap && parts.snaps[f.key]) parts.snaps[f.key].classList.toggle('on', v.atSnap[f.key]);
+if (f.mark && parts.marks[f.key]) parts.marks[f.key].classList.toggle('on', v.atMark[f.key]);
 }
-
+}
+return { render };
+}
 // ===== interact.js =====
-
-
-
-// Dragging the force at D. attachDrag(root, state) wires it up and returns detach().
-//
-// THE RULES THIS FILE MUST NOT BREAK
-//
-//  1. The scene REBUILDS the whole svg on every render, so no listener is ever bound to a drawn node: it
-//     would be destroyed mid-drag. Pointer events are delegated from the stable svg#fig, and the drag
-//     records only numbers, never a node.
-//  2. Nothing raw reaches the store. state.set snaps every field, but it is handed numbers computed from
-//     the pointer, never a string, and a non-finite pointer position is dropped before it gets there.
-//  3. A press counts as grabbing the handle when it lands inside .load-handle OR within HANDLE_HIT units
-//     of where the handle is drawn -- the circle is small, and at f = 0 there is no arrow to aim at.
-//  4. An abandoned drag (pointercancel) puts the force back where it started.
-//  5. The handle is the arrow's TIP, not its tail: the force at D points OUT of the beam, the way the
-//     weight pulls, so what you take hold of is the arrowhead end, out where the weight hangs.
-
 const DRAG_PX = 3;              // a press that moves less than this (screen px) was a click, not a drag
-
 const finite = (v) => typeof v === 'number' && Number.isFinite(v);
-
-// Client pixels -> viewBox units, through the svg's own box. The svg keeps the viewBox's aspect ratio
-// ("meet"), so the scale is the smaller of the two ratios and the figure is centred in any slack.
 function viewPoint(svg, e) {
-  if (!finite(e.clientX) || !finite(e.clientY)) return null;
-  const r = svg.getBoundingClientRect();
-  if (!(r.width > 0) || !(r.height > 0)) return null;
-  const k = Math.min(r.width / VB.w, r.height / VB.h);
-  const left = r.left + (r.width - VB.w * k) / 2;
-  const top = r.top + (r.height - VB.h * k) / 2;
-  return { x: (e.clientX - left) / k, y: (e.clientY - top) / k };
+if (!finite(e.clientX) || !finite(e.clientY)) return null;
+const r = svg.getBoundingClientRect();
+if (!(r.width > 0) || !(r.height > 0)) return null;
+const k = Math.min(r.width / VB.w, r.height / VB.h);
+const left = r.left + (r.width - VB.w * k) / 2;
+const top = r.top + (r.height - VB.h * k) / 2;
+return { x: (e.clientX - left) / k, y: (e.clientY - top) / k };
 }
-
-// Where the handle is drawn for state s: the arrow's TIP, or a resting spot just below D -- on the
-// weight's hanger -- when there is no force to draw. scene.js must agree with this, so both read it
-// from layout.js.
 function handleSpot(s) {
-  const a = loadArrow(s);
-  return a ? a.tip : handleRest();
+const a = loadArrow(s);
+return a ? a.tip : handleRest();
 }
-
 function attachDrag(root, state) {
-  const svg = root.querySelector ? root.querySelector('#fig') : root;
-  const fF = fieldByKey('f'), fDir = fieldByKey('dir');
-  const bound = [];
-  let drag = null;                 // { id, start, off, from, engaged }
-  let detached = false;
-
-  const on = (target, type, fn) => {
-    if (!target || !target.addEventListener) return;
-    target.addEventListener(type, fn);
-    bound.push([target, type, fn]);
-  };
-
-  // `pt` is always a point viewPoint returned, and viewPoint refuses anything that is not two finite
-  // numbers, so there is nothing left to check here: a second guard would be unreachable code.
-  function apply(pt) {
-    const tip = { x: pt.x + drag.off.x, y: pt.y + drag.off.y };
-    state.set(loadFromHandle(tip, state.getState().dir));
-  }
-
-  function endDrag() {
-    const d = drag;
-    drag = null;                   // first, so the lostpointercapture this triggers finds nothing to end
-    if (!d || !svg) return;
-    svg.classList.toggle('dragging', false);
-    if (typeof svg.releasePointerCapture === 'function' && d.id !== undefined) {
-      try { svg.releasePointerCapture(d.id); } catch (err) { /* already released */ }
-    }
-  }
-
-  function onPointerDown(e) {
-    if (drag || e.isPrimary === false || (e.button !== undefined && e.button !== 0)) return;
-    const pt = viewPoint(svg, e);
-    if (!pt) return;
-    const s = state.getState();
-    const spot = handleSpot(s);
-    const hit = !!(e.target && typeof e.target.closest === 'function' && e.target.closest('.load-handle')) ||
-      dist(pt, spot) <= HANDLE_HIT;
-    if (!hit) return;
-    drag = { id: e.pointerId, start: { x: e.clientX, y: e.clientY },
-      off: { x: spot.x - pt.x, y: spot.y - pt.y }, from: { f: s.f, dir: s.dir }, engaged: false };
-    if (typeof svg.setPointerCapture === 'function' && e.pointerId !== undefined) {
-      try { svg.setPointerCapture(e.pointerId); } catch (err) { /* pointer already gone */ }
-    }
-    if (e.preventDefault) e.preventDefault();
-  }
-
-  function onPointerMove(e) {
-    if (!drag || e.pointerId !== drag.id) return;
-    if (!finite(e.clientX) || !finite(e.clientY)) return;
-    if (!drag.engaged) {
-      if (dist({ x: e.clientX, y: e.clientY }, drag.start) < DRAG_PX) return;
-      drag.engaged = true;
-      svg.classList.toggle('dragging', true);
-    }
-    const pt = viewPoint(svg, e);
-    if (pt) apply(pt);
-  }
-
-  function onPointerUp(e) {
-    if (!drag || e.pointerId !== drag.id) return;
-    const pt = drag.engaged ? viewPoint(svg, e) : null;
-    if (pt) apply(pt);
-    endDrag();
-  }
-
-  function onPointerCancel(e) {
-    if (!drag || e.pointerId !== drag.id) return;
-    const d = drag;
-    endDrag();
-    if (d.engaged) state.set(d.from);                     // an abandoned drag changes nothing
-  }
-
-  function onLostCapture(e) {
-    if (drag && e.pointerId === drag.id) endDrag();
-  }
-
-  // The keyboard, for whoever has tabbed to the handle: left and right swing the force, up and down
-  // change how hard it pulls, and Home puts it back on the hanging weight -- the one setting the
-  // outline under D is there to invite. The steps are the fields' own, and every value goes through
-  // the same snapping a drag does, so a key can only land where a drag could.
-  //
-  // A NUDGE GOES THROUGH setField WITH THE KEYBOARD FLAG, not through set(). The direction sticks at
-  // 270 degrees within ten degrees either side, so one step of five from 270 would snap straight back
-  // and the arrow keys could never leave the weight at all. setField(..., true) is the same path the
-  // slider's own keyboard takes: from the snap value a nudge lands on the far side of the zone.
-  // Home and End set both inputs at once, so they stay on set(), and neither one is a nudge.
-  function onKeyDown(e) {
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    const t = e.target;
-    if (!t || typeof t.closest !== 'function' || !t.closest('.load-handle')) return;
-    const s = state.getState();
-    switch (e.key) {
-      case 'ArrowRight': state.setField('dir', (s.dir + fDir.step) % 360, true); break;
-      case 'ArrowLeft': state.setField('dir', (s.dir - fDir.step + 360) % 360, true); break;
-      case 'ArrowUp': state.setField('f', s.f + fF.step, true); break;
-      case 'ArrowDown': state.setField('f', s.f - fF.step, true); break;
-      case 'Home': state.set({ f: fF.max, dir: snapAt(fDir) }); break;
-      case 'End': state.set({ f: 0 }); break;
-      default: return;
-    }
-    if (e.preventDefault) e.preventDefault();
-  }
-
-  on(svg, 'pointerdown', onPointerDown);
-  on(svg, 'pointermove', onPointerMove);
-  on(svg, 'pointerup', onPointerUp);
-  on(svg, 'pointercancel', onPointerCancel);
-  on(svg, 'lostpointercapture', onLostCapture);
-  on(root, 'keydown', onKeyDown);
-
-  return function detach() {
-    if (detached) return;
-    detached = true;
-    for (const [target, type, fn] of bound) target.removeEventListener(type, fn);
-    bound.length = 0;
-    endDrag();
-  };
+const svg = root.querySelector ? root.querySelector('#fig') : root;
+const fF = fieldByKey('f'), fDir = fieldByKey('dir');
+const bound = [];
+let drag = null;                 // { id, start, off, from, engaged }
+let detached = false;
+const on = (target, type, fn) => {
+if (!target || !target.addEventListener) return;
+target.addEventListener(type, fn);
+bound.push([target, type, fn]);
+};
+function apply(pt) {
+const tip = { x: pt.x + drag.off.x, y: pt.y + drag.off.y };
+state.set(loadFromHandle(tip, state.getState().dir));
 }
-
+function endDrag() {
+const d = drag;
+drag = null;                   // first, so the lostpointercapture this triggers finds nothing to end
+if (!d || !svg) return;
+svg.classList.toggle('dragging', false);
+if (typeof svg.releasePointerCapture === 'function' && d.id !== undefined) {
+try { svg.releasePointerCapture(d.id); } catch (err) { /* already released */ }
+}
+}
+function onPointerDown(e) {
+if (drag || e.isPrimary === false || (e.button !== undefined && e.button !== 0)) return;
+const pt = viewPoint(svg, e);
+if (!pt) return;
+const s = state.getState();
+const spot = handleSpot(s);
+const hit = !!(e.target && typeof e.target.closest === 'function' && e.target.closest('.load-handle')) ||
+dist(pt, spot) <= HANDLE_HIT;
+if (!hit) return;
+drag = { id: e.pointerId, start: { x: e.clientX, y: e.clientY },
+off: { x: spot.x - pt.x, y: spot.y - pt.y }, from: { f: s.f, dir: s.dir }, engaged: false };
+if (typeof svg.setPointerCapture === 'function' && e.pointerId !== undefined) {
+try { svg.setPointerCapture(e.pointerId); } catch (err) { /* pointer already gone */ }
+}
+if (e.preventDefault) e.preventDefault();
+}
+function onPointerMove(e) {
+if (!drag || e.pointerId !== drag.id) return;
+if (!finite(e.clientX) || !finite(e.clientY)) return;
+if (!drag.engaged) {
+if (dist({ x: e.clientX, y: e.clientY }, drag.start) < DRAG_PX) return;
+drag.engaged = true;
+svg.classList.toggle('dragging', true);
+}
+const pt = viewPoint(svg, e);
+if (pt) apply(pt);
+}
+function onPointerUp(e) {
+if (!drag || e.pointerId !== drag.id) return;
+const pt = drag.engaged ? viewPoint(svg, e) : null;
+if (pt) apply(pt);
+endDrag();
+}
+function onPointerCancel(e) {
+if (!drag || e.pointerId !== drag.id) return;
+const d = drag;
+endDrag();
+if (d.engaged) state.set(d.from);                     // an abandoned drag changes nothing
+}
+function onLostCapture(e) {
+if (drag && e.pointerId === drag.id) endDrag();
+}
+function onKeyDown(e) {
+if (e.ctrlKey || e.metaKey || e.altKey) return;
+const t = e.target;
+if (!t || typeof t.closest !== 'function' || !t.closest('.load-handle')) return;
+const s = state.getState();
+switch (e.key) {
+case 'ArrowRight': state.setField('dir', (s.dir + fDir.step) % 360, true); break;
+case 'ArrowLeft': state.setField('dir', (s.dir - fDir.step + 360) % 360, true); break;
+case 'ArrowUp': state.setField('f', s.f + fF.step, true); break;
+case 'ArrowDown': state.setField('f', s.f - fF.step, true); break;
+case 'Home': state.set({ f: fF.max, dir: snapAt(fDir) }); break;
+case 'End': state.set({ f: 0 }); break;
+default: return;
+}
+if (e.preventDefault) e.preventDefault();
+}
+on(svg, 'pointerdown', onPointerDown);
+on(svg, 'pointermove', onPointerMove);
+on(svg, 'pointerup', onPointerUp);
+on(svg, 'pointercancel', onPointerCancel);
+on(svg, 'lostpointercapture', onLostCapture);
+on(root, 'keydown', onKeyDown);
+return function detach() {
+if (detached) return;
+detached = true;
+for (const [target, type, fn] of bound) target.removeEventListener(type, fn);
+bound.length = 0;
+endDrag();
+};
+}
 // ===== app.js =====
-
-
-
-
-
-
-
-// The page: the four diagrams and the reading of the force at D. Nothing else.
-//
-// BOTH inputs are set by DRAGGING the arrow at D, not by sliders, so SLIDER_FIELDS is empty and the
-// bar under the figure holds readings rather than controls. The keyboard still reaches the force:
-// tab to the handle, then the arrow keys swing it and change its strength, Home puts it back on the
-// hanging weight at full strength and End drops it. That is the drag by another route, not a second
-// way in, and without it the force would need a mouse.
 const APP_TITLE = 'Beam held by a cable over a pulley';
-
 function appStart() {
-  document.title = APP_TITLE;
-  const state = createState();
-  const fig = document.getElementById('fig');
-  const scene = createScene(fig);
-  const parts = { reset: null, sliders: {}, readouts: {}, snaps: {}, marks: {} };
-  // Readouts for every input, sliders only for those that have one.
-  for (const f of FIELDS) {
-    parts.readouts[f.key] = document.getElementById(`${f.id}-readout`);
-    if (f.snap) parts.snaps[f.key] = document.getElementById(`${f.id}-snap`);
-    if (f.mark) parts.marks[f.key] = document.getElementById(`${f.id}-mark`);
-  }
-  for (const f of SLIDER_FIELDS) parts.sliders[f.key] = document.getElementById(`${f.id}-slider`);
-  const controls = createControls(document.getElementById('controls'), state, parts);
-
-  // Presets from the link apply once, before the first render. Only the fields the link set.
-  const presets = parsePresets(location.search);
-  state.set(presets.values);
-  const note = describePresets(presets);
-  const link = document.getElementById('from-link');
-  link.textContent = note;            // text only: the link's own text can never become markup
-  link.hidden = note === '';
-
-  // The scene rebuilds the whole figure, so the drag handle is a NEW node after every render. Hand
-  // focus back when the old one had it, and never take it otherwise.
-  function sync() {
-    const s = state.getState();
-    const active = typeof document.activeElement === 'object' && document.activeElement
-      && typeof document.activeElement.getAttribute === 'function'
-      && (document.activeElement.getAttribute('class') || '').includes('load-handle');
-    scene.render(s);
-    controls.render(s);
-    if (active && fig.querySelector) {
-      const handle = fig.querySelector('.load-handle');
-      if (handle && typeof handle.focus === 'function') handle.focus({ preventScroll: true });
-    }
-  }
-  state.subscribe(sync);
-  sync();
-  attachDrag(document.getElementById('stage'), state);
+document.title = APP_TITLE;
+const state = createState();
+const fig = document.getElementById('fig');
+const scene = createScene(fig);
+const parts = { readouts: {}, snaps: {}, marks: {} };
+for (const f of FIELDS) {
+parts.readouts[f.key] = document.getElementById(`${f.id}-readout`);
+if (f.snap) parts.snaps[f.key] = document.getElementById(`${f.id}-snap`);
+if (f.mark) parts.marks[f.key] = document.getElementById(`${f.id}-mark`);
 }
-
+const controls = createControls(parts);
+const presets = parsePresets(location.search);
+state.set(presets.values);
+const note = describePresets(presets);
+const link = document.getElementById('from-link');
+link.textContent = note;            // text only: the link's own text can never become markup
+link.hidden = note === '';
+function sync() {
+const s = state.getState();
+const active = typeof document.activeElement === 'object' && document.activeElement
+&& typeof document.activeElement.getAttribute === 'function'
+&& (document.activeElement.getAttribute('class') || '').includes('load-handle');
+scene.render(s);
+controls.render(s);
+if (active && fig.querySelector) {
+const handle = fig.querySelector('.load-handle');
+if (handle && typeof handle.focus === 'function') handle.focus({ preventScroll: true });
+}
+}
+state.subscribe(sync);
+sync();
+attachDrag(document.getElementById('stage'), state);
+}
 appStart();
-
 })();
 </script>
 </body>

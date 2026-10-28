@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MINUS, NBSP, fmt, fmtFixed, withUnit, unfmt } from '../src/format.js';
+import { MINUS, NBSP, fmt, fmtFixed, withUnit } from '../src/format.js';
 import { nb } from './nb.js';
 
 test('MINUS is U+2212 and NBSP is U+00A0', () => {
@@ -37,13 +37,6 @@ test('withUnit joins with a no-break space', () => {
   assert.ok(!withUnit('50', 'N/m').includes(' '));
 });
 
-test('unfmt is the inverse of the printing functions, true minus included', () => {
-  assert.equal(unfmt('−0.30'), -0.3);
-  assert.equal(unfmt('12'), 12);
-  assert.equal(unfmt(fmt(-5.3333)), -5.33);
-  assert.equal(unfmt(fmtFixed(0.2)), 0.2);
-  assert.ok(Number.isNaN(unfmt('—')));
-});
 
 test('nb(): "~" becomes U+00A0 and nothing else changes', () => {
   assert.equal(nb('12~V'), '12' + NBSP + 'V');

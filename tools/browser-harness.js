@@ -102,14 +102,11 @@
   const SIM = {
     figId: 'fig',
     viewBox: { w: 960, h: 700 },                                   // (drift) the template's <svg viewBox>
-    // This page has the four diagrams and two sliders, and the same two inputs can also be set by
-    // dragging the arrow at D. There is no reading panel and no reset button, so those ids are null
-    // and the harness does not go looking for them.
+    // This page has the four diagrams and NO control to push: both inputs are set by dragging the
+    // arrowhead at D, and the bar under the figure only reads them back. There is no reading panel
+    // and no reset button either, so those ids are null and the harness does not look for them.
     controlsId: 'controls', calcId: null, resetId: null,
-    sliders: [                                                     // (drift) SLIDER_FIELDS
-      { key: 'f', id: 'f', min: 0, max: 300, step: 25, decimals: 0 },
-      { key: 'dir', id: 'dir', min: 0, max: 360, step: 5, decimals: 0 }
-    ],
+    sliders: [],                                                   // (drift) SLIDER_FIELDS, which is empty
     readouts: [                                                    // (drift) one per entry in FIELDS
       { key: 'f', id: 'f', decimals: 0 },
       { key: 'dir', id: 'dir', decimals: 0 }
@@ -129,22 +126,18 @@
       { sel: 'line.shaft.pt.cableC', measure: 'width',
         want: (s) => { const d = PHYS.of(s); return d.magCE === 0 ? null : PHYS.piece(d.magCE) / PHYS.SQ5; } }
     ],
-    // The sweep drives the two sliders over this grid: four magnitudes (both ends included) and seven
-    // directions -- the quadrant points, both ends, the snapped 270 and the two values just outside
-    // its zone, which are the only ones the keyboard can jump to.
-    grid: { f: [0, 100, 200, 300], dir: [0, 90, 180, 255, 270, 285, 360] },
+    // WITH NOTHING ON THE PAGE TO DRIVE, the sweep runs the default state alone and every other
+    // state comes from a `query` probe, which loads the page for real with that link. That is the
+    // same code path a student's preset link takes, so the coverage is not weaker -- but it is all
+    // asynchronous: `await H.queries()` is the run that matters on this page.
+    grid: {},
     probes: [
-      { ask: { f: 212 }, expect: { f: 200 } },                             // off-step: rounds down
-      { ask: { dir: 267 }, expect: { dir: 270 } },                         // off-step, and then inside the zone
-      { ask: { dir: 280 }, expect: { dir: 270 } },                         // the zone's far edge: still snaps
-      { ask: { dir: 285 }, expect: { dir: 285 } },                         // one step past it: the keyboard's jump
-      { ask: { f: 300, dir: 35 }, expect: { f: 300, dir: 35 } },           // both at once, and the longest labels
+      { query: '?f=300&dir=35', expect: { f: 300, dir: 35 } },             // the longest labels, and slack
       { query: '?f=0&dir=270', expect: { f: 0, dir: 270 } },               // nothing applied: every force is zero
       { query: '?f=300&dir=270', expect: { f: 300, dir: 270 } },           // the hardest straight-down pull
       { query: '?f=200&dir=180', expect: { f: 200, dir: 180 } },           // along the beam: the cable carries nothing
       { query: '?f=200&dir=0', expect: { f: 200, dir: 0 } },               // the other way along it
       { query: '?f=200&dir=90', expect: { f: 200, dir: 90 } },             // straight up: the cable would have to push
-      { query: '?f=300&dir=35', expect: { f: 300, dir: 35 } },             // the longest labels, and slack
       { query: '?f=300&dir=225', expect: { f: 300, dir: 225 } },           // the hardest the pin is ever pulled
       { query: '?f=200&dir=280', expect: { f: 200, dir: 270 } },           // the snap zone's far edge: still snaps
       { query: '?f=200&dir=285', expect: { f: 200, dir: 285 } },           // one step past it: the keyboard's jump out

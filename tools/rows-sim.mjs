@@ -242,6 +242,22 @@ export const SIM_ROWS = [
   // moment later. The line only earns its keep on a page with a dragged-only input, which this is
   // not any more, so the row was an equivalent mutant and is gone.)
 
+  // ---- the trim of 2026-10-28: the strip, and the page having no control at all ---------------------
+  // THE MISTAKE THE STRIP IS DESIGNED AROUND. Eating trailing comments as well looks like more of a
+  // good thing and is not: a trailing `//` cannot be told from the `//` of a URL in a string without
+  // parsing the line, and svg.js holds "http://www.w3.org/2000/svg".
+  ['build.js', 'the strip eats trailing comments too, and with them the // of a URL in a string',
+    "lines = lines.filter(l => !/^\\s*\\/\\//.test(l) && l.trim() !== '').map(l => l.replace(/^[ \\t]+/, ''));",
+    "lines = lines.map(l => l.replace(/\\/\\/.*$/, '')).filter(l => l.trim() !== '').map(l => l.replace(/^[ \\t]+/, ''));",
+    { max: 20 }],
+  ['build.js', 'the strip leaves the indentation it was meant to drop',
+    "lines = lines.filter(l => !/^\\s*\\/\\//.test(l) && l.trim() !== '').map(l => l.replace(/^[ \\t]+/, ''));",
+    "lines = lines.filter(l => !/^\\s*\\/\\//.test(l) && l.trim() !== '');", { max: 20 }],
+  ['fields.js', 'an input is given a slider the page has no markup, binding or test for',
+    'export const SLIDER_FIELDS = FIELDS.filter(f => !f.noSlider);', 'export const SLIDER_FIELDS = FIELDS;', { max: 25 }],
+  ['controls.js', 'the bar assumes every input has a node, so a page showing fewer readings throws',
+    '      if (parts.readouts[f.key]) controlsSetText(parts.readouts[f.key], v.text[f.key]);',
+    '      controlsSetText(parts.readouts[f.key], v.text[f.key]);', { max: 20 }],
   // ---- the browser harness's own copies (drift) --------------------------------------------------------
   ['tools/browser-harness.js', 'the harness keeps the old viewBox',
     'viewBox: { w: 960, h: 700 },', 'viewBox: { w: 960, h: 616 },', { max: 5 }],
@@ -253,8 +269,8 @@ export const SIM_ROWS = [
     'BASEX: 62, FOOT: 26,', 'BASEX: 62, FOOT: 30,', { max: 5 }],
   ['tools/browser-harness.js', 'the non-vacuity floors are set to nothing',
     'floors: { texts: 20, graphics: 55 },', 'floors: { texts: 1, graphics: 1 },', { max: 5 }],
-  ['tools/browser-harness.js', 'a probe expects something the slider would never show',
-    '{ ask: { dir: 280 }, expect: { dir: 270 } },', '{ ask: { dir: 280 }, expect: { dir: 280 } },', { max: 5 }],
+  ['tools/browser-harness.js', 'a probe expects something the page would never show',
+    "{ query: '?f=200&dir=280', expect: { f: 200, dir: 270 } },", "{ query: '?f=200&dir=280', expect: { f: 200, dir: 280 } },", { max: 5 }],
   ['tools/browser-harness.js', 'the harness stops reading the snap chip, so a snap nobody can see would pass',
     "    snaps: [{ key: 'dir', id: 'dir-snap', at: 270 }],              // (drift) the FIELDS entry's snap.at",
     "    snaps: [],", { max: 5 }],
@@ -266,8 +282,8 @@ export const SIM_ROWS = [
   // ---- the page and the grid ---------------------------------------------------------------------------
   ['index.template.html', 'a reset button creeps back into the diagrams-only page',
     '  <p id="from-link" hidden></p>', '  <button id="reset">Reset</button>\n  <p id="from-link" hidden></p>', { max: 10 }],
-  ['index.template.html', 'the tick that marks the snapped direction disappears from its scale',
-    '      <i class="zt"></i>\n', '', { max: 10 }],
+  ['index.template.html', 'the chip that marks the snapped direction loses the words that say what it means',
+    '>straight down<', '><', { max: 10 }],
   ['test/grid.js', 'the grid is cut short, so it is no longer the product of the inputs\' values',
     '(acc, f) => acc.flatMap(s => VALUES[f.key].map(v => ({ ...s, [f.key]: v }))), [{}]);',
     '(acc, f) => acc.flatMap(s => VALUES[f.key].map(v => ({ ...s, [f.key]: v }))), [{}]).slice(0, 50);', { max: 20 }],
@@ -290,8 +306,9 @@ export const SIM_ROWS = [
   ['layout.js', 'two panels are allowed to overlap, so a label of one lands in the other',
     "  point: { headY: 22, headX: 614, ox: 777, oy: 200,\n           box: { x0: 602, x1: 952, y0: 6, y1: 398 } },",
     "  point: { headY: 22, headX: 614, ox: 777, oy: 200,\n           box: { x0: 402, x1: 952, y0: 6, y1: 398 } },", { max: 20 }],
-  ['physics.js', 'a bearing comes back negative instead of folded into a full turn',
-    'return deg < 0 ? deg + 360 : deg;', 'return deg;', { max: 12 }],
+  // (The row for headingOf went with the function: the app never called it, so it was weight in the
+  // page for nothing. What it checked -- that the components really point the way the direction says
+  // -- is still checked in physics.test.js, with the arithmetic written out there instead.)
   ['svg.js', 'the arrow pieces are wrapped in a group, where the harness cannot measure them one by one',
     "    el('line', { class: `g arrow shaft ${cls}`,", "    el('line', { class: `arrow shaft ${cls}`,", { max: 20 }],
   ['layout.js', 'the smallest text drops to a size that is under 12 px even before a link note',

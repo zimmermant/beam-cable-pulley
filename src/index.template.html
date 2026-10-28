@@ -12,20 +12,10 @@
 <svg id="fig" viewBox="0 0 960 700" role="img" aria-label="Four diagrams of one beam. A horizontal beam runs from a pin in the wall at A to its free end at D, with a cable tied to it at B, taken up over a pulley at E on the ceiling and back down to a second tie at C; the weight that hung at D is left in outline, and the force at D can be dragged by the round handle at the arrow's tip. Beside and below it: the same beam as a single point carrying only the forces, the free-body diagram of the beam with the pin and the cable replaced by what they do, and the four forces drawn tip to tail."></svg>
 </div>
 <section id="controls" class="bar" aria-label="The force at D">
-  <div class="ctl">
-    <div class="ctl-head"><label for="f-slider"><b>Force at D</b></label> F<sub>D</sub> = <b id="f-readout" class="readout">200</b>&nbsp;lb <span class="hint">(or drag the arrowhead)</span></div>
-    <div class="zs">
-      <input type="range" id="f-slider" min="0" max="300" step="25" value="200">
-      <div class="zl"><span>0&nbsp;lb</span><span>300&nbsp;lb</span></div>
-    </div>
-  </div>
-  <div class="ctl">
-    <div class="ctl-head"><label for="dir-slider"><b>Direction at D</b></label> θ = <b id="dir-readout" class="readout">270</b>° <span class="hint">(0° along the beam to the right, 90° straight up)</span></div>
-    <div class="zs">
-      <i class="zt"></i>
-      <input type="range" id="dir-slider" min="0" max="360" step="5" value="270">
-      <div class="zl"><span>0°</span><span id="dir-snap" class="snap-label">270° straight down</span><span>360°</span></div>
-    </div>
+  <div class="ctl-head"><b>Force at D</b>
+    &nbsp; F<sub>D</sub> = <b id="f-readout" class="readout">200</b>&nbsp;lb
+    &nbsp; θ = <b id="dir-readout" class="readout">270</b>°
+    <span id="dir-snap" class="snap-label">straight down</span>
   </div>
   <p id="from-link" hidden></p>
 </section>

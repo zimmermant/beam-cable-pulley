@@ -12,7 +12,7 @@ h1 { margin: 0; font-size: 20px; line-height: 1.2; font-weight: 600; }
 h2 { margin: 0 0 4px; font-size: 15px; line-height: 1.3; font-weight: 600; }
 
 /* ---- page layout ---------------------------------------------------------
-   The four diagrams and one slider, nothing else. The figure is sized to FIT, not to fill: the svg
+   The four diagrams and a reading bar, nothing else. The figure is sized to FIT, not to fill: the svg
    keeps its viewBox's aspect ratio (preserveAspectRatio defaults to "meet"), so it is as large as
    the window allows and centred in whatever is left over. The page therefore never scrolls at any
    size, and src/interact.js already reads that letterboxing when it turns a pointer position into
@@ -26,7 +26,6 @@ body { margin: 0; padding: 0; height: 100vh; overflow: hidden; }
 /* The readings, in a slim bar under the figure. */
 .bar { flex: 0 0 auto; max-width: 740px; width: 100%; margin: 3px auto 0; padding: 1px 12px 2px;
        border: 1px solid #d5dbe3; border-radius: 8px; background: #f9fafb; }
-.hint { color: #718096; font-weight: 400; }
 /* A subscript is browser-default 83% of its parent, which at 15 px is 12.4 px -- close enough to the
    12 px floor to be worth pinning rather than leaving to the browser. */
 #controls sub { font-size: 12px; line-height: 0; }
@@ -47,49 +46,17 @@ body { margin: 0; padding: 0; height: 100vh; overflow: hidden; }
 #fig.dragging { cursor: grabbing; }
 
 
-/* ---- the two sliders ----------------------------------------------------
-   Both inputs can also be set by dragging the arrow at D; these are the exact way in.
-   EVERY PIXEL HERE COMES OFF THE FIGURE, and the figure is what has to stay legible. The page fits
-   the window with no scroll, so the svg takes whatever height the bar leaves, and the smallest text
-   in it renders at SUB x that scale. On a 1280 x 720 laptop, a link that adds a two-line "Adjusted:"
-   note left the bar 219 px tall and the subscripts at 11.9 px -- under the floor. The track is 22 px
-   rather than 26, and the paddings are a pixel or two each, which is what buys that back. */
-.ctl { margin-bottom: 2px; }
-.ctl-head { font-size: 15px; line-height: 1.3; }
-.ctl-head label { cursor: pointer; }
-.readout { font-variant-numeric: tabular-nums; display: inline-block; min-width: 2.4em; text-align: right; }
-.zs { position: relative; padding-top: 2px; }
-/* THE SNAPPED DIRECTION, at 75% of the scale. The direction runs 0 to 360 degrees and sticks at 270,
-   which is (270 - 0) / (360 - 0) of the way along: a tick there, and a label that lights up while the
-   force is exactly on it -- the same moment the outlined weight in the figure fills in. A test ties
-   this percentage to the field's own snap value, so the two cannot drift apart. */
-.zt { position: absolute; left: 75%; top: 2px; width: 2px; height: 22px; margin-left: -1px; background: #c53030; border-radius: 1px; pointer-events: none; }
-.zs input[type=range] {
-  position: relative; z-index: 1; display: block; width: 100%; height: 22px; margin: 0; padding: 0;
-  background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none;
+/* ---- the reading bar ----------------------------------------------------
+   No sliders: the figure IS the control, so the bar reads back the two numbers the drag changes and
+   lights a chip when the force is exactly straight down. Every pixel here comes off the figure --
+   the svg takes whatever height the bar leaves it -- so the bar stays one line wherever it can. */
+.ctl-head { font-size: 15px; line-height: 1.4; }
+.readout { font-variant-numeric: tabular-nums; display: inline-block; min-width: 2.2em; text-align: right; font-weight: 700; }
+/* The snap, visible and not merely felt: outlined while the force is off the weight, filled in while
+   it is on it -- the same change the outlined weight in the figure makes at the same moment. */
+.snap-label {
+  display: inline-block; margin-left: 6px; padding: 0 9px; border-radius: 10px; white-space: nowrap;
+  font-size: 13px; font-weight: 700; color: #9aa1ab; border: 1px solid #d5dbe3;
+  transition: background .1s, color .1s, border-color .1s;
 }
-.zs input[type=range]:focus { outline: none; }
-.zs input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: #a0aec0; }
-.zs input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: #a0aec0; }
-.zs input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none; box-sizing: border-box; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%;
-  background: #ffffff; border: 3px solid #2d3748; box-shadow: 0 1px 3px #0004; transition: transform .08s, background .08s, border-color .08s;
-}
-.zs input[type=range]::-moz-range-thumb {
-  box-sizing: border-box; width: 22px; height: 22px; border-radius: 50%; background: #ffffff; border: 3px solid #2d3748; box-shadow: 0 1px 3px #0004;
-  transition: transform .08s, background .08s, border-color .08s;
-}
-.zs input[type=range]:hover::-webkit-slider-runnable-track { background: #718096; }
-.zs input[type=range]:hover::-moz-range-track { background: #718096; }
-.zs input[type=range]:hover::-webkit-slider-thumb { background: #ebf8ff; border-color: #2b6cb0; transform: scale(1.12); }
-.zs input[type=range]:hover::-moz-range-thumb { background: #ebf8ff; border-color: #2b6cb0; transform: scale(1.12); }
-.zs input[type=range]:active::-webkit-slider-thumb { background: #2b6cb0; border-color: #2c5282; transform: scale(1.2); }
-.zs input[type=range]:active::-moz-range-thumb { background: #2b6cb0; border-color: #2c5282; transform: scale(1.2); }
-.zs input[type=range]:focus-visible::-webkit-slider-thumb { border-color: #2b6cb0; box-shadow: 0 0 0 4px #2b6cb066; }
-.zs input[type=range]:focus-visible::-moz-range-thumb { border-color: #2b6cb0; box-shadow: 0 0 0 4px #2b6cb066; }
-.zl { position: relative; display: flex; justify-content: space-between; margin-top: 0; font-size: 13px; line-height: 1.3; opacity: .9; }
-.zl .snap-label {
-  position: absolute; left: 75%; transform: translateX(-50%); padding: 0 8px; font-weight: 700; color: #c53030;
-  border-radius: 10px; white-space: nowrap; transition: background .1s, color .1s;
-}
-.zl .snap-label.on { background: #c53030; color: #ffffff; }
+.snap-label.on { background: #c53030; border-color: #c53030; color: #ffffff; }

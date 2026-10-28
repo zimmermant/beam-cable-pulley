@@ -85,8 +85,6 @@ export const GENERIC = [
     "export const NBSP = '" + BS + "u00a0';", "export const NBSP = ' ';", { max: 60 }],
   ['format.js', 'MINUS is a hyphen-minus',
     "export const MINUS = '−';", "export const MINUS = '-';", { max: 60 }],
-  ['format.js', 'unfmt does not understand the true minus sign',
-    "return Number(String(text).replace(MINUS, '-'));", 'return Number(String(text));', { max: 15 }],
 
   // ---- the repo hygiene file --------------------------------------------------------------------------
   ['.gitignore', 'questions.md is no longer ignored', 'questions.md\n', '', { max: 5 }],
@@ -162,13 +160,11 @@ export const GENERIC = [
   ['presets.js', 'a rejected value is stored as 0 instead of being ignored',
     'if (v !== undefined) out.values[f.key] = v;', 'out.values[f.key] = v === undefined ? 0 : v;'],
 
-  // ---- controls.js: the sliders and the reset button -------------------------------------------------
-  ['controls.js', 'aria-valuetext drops the unit',
-    "slider.setAttribute('aria-valuetext', withUnit(text, unitWord));", "slider.setAttribute('aria-valuetext', text);"],
-  ['controls.js', 'aria-valuetext uses the symbol instead of the unit word',
-    'v.text[f.key], s[f.key], f.unitWord);', 'v.text[f.key], s[f.key], f.unit);'],
-  ['controls.js', 'the thumb is not moved back after a snap',
-    'if (Number(slider.value) !== value) slider.value = String(value);', ''],
+  // ---- controls.js: the reading bar ------------------------------------------------------------------
+  // The twelve rows that used to live here -- the thumb put back after a snap, the keyboard mark set
+  // and cleared, the aria-valuetext of a range input, the reset button -- went when the sliders did.
+  // This page has no control to push: the figure is the control. What is left is what the bar still
+  // does, which is write numbers and light a chip.
   ['controls.js', 'the snap label never lights',
     "if (f.snap && parts.snaps[f.key]) parts.snaps[f.key].classList.toggle('on', v.atSnap[f.key]);", '', { needsSnap: true }],
   ['controls.js', 'the mark label never lights',
@@ -181,22 +177,6 @@ export const GENERIC = [
     "classList.toggle('on', v.atSnap[f.key]);", "classList.toggle('on', !v.atSnap[f.key]);", { needsSnap: true }],
   ['controls.js', 'controlsView never reports a snap field as sitting on its snap value',
     'if (f.snap) atSnap[f.key] = s[f.key] === snapAt(f);', 'if (f.snap) atSnap[f.key] = false;', { needsSnap: true }],
-  ['controls.js', 'the reset button is not wired',
-    "parts.reset.addEventListener('click', () => state.reset());", ''],
-  ['controls.js', 'a slider input does not render (the thumb is not put back after a snap to the same value)',
-    'render(state.getState());   // the state may not have changed', '// the state may not have changed'],
-  ['controls.js', 'the keyboard mark is never set',
-    "root.addEventListener('keydown', (e) => { if (CONTROLS_KEYS.includes(e.key)) viaKeyboard = true; });", '', { needsSnap: true }],
-  ['controls.js', 'any key (a letter) counts as a slider key',
-    'if (CONTROLS_KEYS.includes(e.key)) viaKeyboard = true;', 'viaKeyboard = true;', { needsSnap: true }],
-  ['controls.js', 'the keyboard mark is not cleared after the input it marked',
-    '      const kb = viaKeyboard;\n      viaKeyboard = false;', '      const kb = viaKeyboard;', { needsSnap: true }],
-  ['controls.js', 'a key release does not clear the mark',
-    "root.addEventListener('keyup', clearKey);", '', { needsSnap: true }],
-  ['controls.js', 'a pointer press does not clear the mark',
-    "root.addEventListener('pointerdown', clearKey);", '', { needsSnap: true }],
-  ['controls.js', 'losing focus does not clear the mark',
-    "root.addEventListener('focusout', clearKey);", '', { needsSnap: true }],
 
   // ---- app.js: wiring -----------------------------------------------------------------------------------
   ['app.js', 'the link note is written as markup, not text',
@@ -219,10 +199,8 @@ export const GENERIC = [
     'role="img"', 'role="presentation"'],
   ['index.template.html', 'a second CSS marker is left in the page',
     '</head>', '<!--INLINE_CSS--></head>'],
-  ['styles.css', 'the slider thumb no longer responds to hover (Firefox)',
-    '.zs input[type=range]:hover::-moz-range-thumb { background: #ebf8ff; border-color: #2b6cb0; transform: scale(1.12); }', ''],
   ['styles.css', 'the snap label no longer lights up',
-    '.zl .snap-label.on { background: #c53030; color: #ffffff; }', ''],
+    '.snap-label.on { background: #c53030; border-color: #c53030; color: #ffffff; }', ''],
   ['styles.css', 'a subscript is left at its browser default size (10.8 px)',
     '#controls sub { font-size: 12px; line-height: 0; }', ''],
   ['styles.css', 'the page may scroll, so the figure is no longer sized to fit the window',
